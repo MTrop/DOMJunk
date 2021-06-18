@@ -480,8 +480,9 @@
 				return this;
 			};
 
-			responseTypeHandlers = {};
 		}
+
+		AJAXCall.prototype.responseTypeHandlers = {};
 
 		/********************************************************************/
 		/** Commands                                                       **/
