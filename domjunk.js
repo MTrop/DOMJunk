@@ -799,7 +799,7 @@
 
 		/**
 		 * Start an AJAX call.
-		 * @param param 
+		 * @param {*} param 
 		 * (string) URL:
 		 *		Makes a GET request with the provided URL.
 		 *		Default return handling.
