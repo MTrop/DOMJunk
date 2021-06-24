@@ -2,7 +2,8 @@
 if not exist "build" (
 	mkdir build
 )
-uglifyjs -c -m --comments --name-cache build\domjunk.map < domjunk.js > build\domjunk.min.js
-pushd build
-gzip -c domjunk.min.js > domjunk.min.js.gz
-popd
+uglifyjs --compress --mangle --comments --source-map url=domjunk.min.js.map,includeSources --output build\domjunk.min.js < domjunk.js && (
+	pushd build
+	gzip -c domjunk.min.js > domjunk.min.js.gz
+	popd
+)

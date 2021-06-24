@@ -328,7 +328,8 @@
 			/**
 			 * Sets the function to invoke right before the request is sent.
 			 * @param {Function} func a function that takes:
-			 *		xhr (XMLHttpResponse) the actual XMLHttpResponse object.
+			 *		xhr (XMLHttpResponse): the actual XMLHttpResponse object.
+			 *		event (ProgressEvent): the actual Event object.
 			 * @returns {AJAXCall} itself for chaining.
 			 */
 			beforeSend(func) {
@@ -339,7 +340,7 @@
 			/**
 			 * Sets the function to invoke right before loading starts.
 			 * @param {Function} func a function that takes:
-			 *		xhr (XMLHttpResponse) the actual XMLHttpResponse object.
+			 *		xhr (XMLHttpResponse): the actual XMLHttpResponse object.
 			 *		event (ProgressEvent): the actual Event object.
 			 * @returns {AJAXCall} itself for chaining.
 			 */
@@ -574,7 +575,7 @@
 		 * Equivalent to: .clear().append(elements)
 		 */
 		const $refill = function(elements) {
-			$(this).clear().append(elements);
+			(new SelectionGroup(this)).clear().append(elements);
 		};
 
 		/**
@@ -772,6 +773,29 @@
 		/********************************************************************/
 
 		/**
+		 * Attaches a function to a DOM element event handler (the "on" members).
+		 * The function attached is wrapped in a different function that
+		 * parses out the event target and passes it to the function as [this].
+		 * @param {string} eventName the event name (for example, if "mouseover", attaches to "onmouseover").
+		 * @param {Function} func the function to wrap (the function's [this] becomes the element, and the function's first arg is the event. Cannot be a lambda closure).
+		 */
+		const $attach = function(eventName, func) {
+			this["on"+(eventName.toLowerCase())] = function(event) {
+				func.apply(event.target, [event]);
+			};
+		};
+
+		/**
+		 * Detaches a function from a DOM element event handler (the "on" members).
+		 * @param {string} eventName the event name (for example, if "mouseover", nullifies "onmouseover").
+		 */
+		const $detach = function(eventName) {
+			this["on"+(eventName.toLowerCase())] = null;
+		};
+
+		/********************************************************************/
+
+		/**
 		 * Wraps a single element in the SelectionGroup in a new SelectionGroup.
 		 * @param {number} index the index of the selected element.
 		 * @returns {SelectionGroup} the new SelectionGroup of matching elements.
@@ -794,6 +818,19 @@
 		 */
 		const $last = function() {
 			return new SelectionGroup(this[this.length - 1]);
+		};
+
+		/********************************************************************/
+
+		/**
+		 * Takes a single object where the keys are selector queries to run via .find() and
+		 * corresponding values are functions to call on the selection results via .each().
+		 * @param {object} selectorMap the mapping of selector strings to functions.
+		 */
+		const $apply = function(selectorMap) {
+			each(selectorMap, (v, k) => {
+				this.find(k).each(v);
+			});
 		};
 
 		/********************************************************************/
@@ -999,7 +1036,7 @@
 		 * If the function returns a value (not undefined), it is returned as the result.
 		 * If it never returned a function, the SelectionGroup instance is returned as the result.
 		 * @param {string} name the name of the function to add to all query results.
-		 * @param {Function} func the function itself.
+		 * @param {Function} func the function itself (cannot be a lambda closure).
 		 */
 		CTX.DOMJunk.extend = function(name, func) {
 			SelectionGroup.prototype[name] = function() {
@@ -1015,7 +1052,7 @@
 		 * Adds a wrapped function to the SelectionGroup prototype.
 		 * The function's [this] keyword becomes the SelectionGroup itself.
 		 * @param {string} name the name of the function to add.
-		 * @param {Function} func the function to add.
+		 * @param {Function} func the function to add (cannot be a lambda closure).
 		 */
 		CTX.DOMJunk.extendSelection = function(name, func) {
 			SelectionGroup.prototype[name] = function() {
@@ -1057,9 +1094,13 @@
 		CTX.DOMJunk.extend('classRemove', $classRemove);
 		CTX.DOMJunk.extend('classToggle', $classToggle);
 
+		CTX.DOMJunk.extend('attach', $attach);
+		CTX.DOMJunk.extend('detach', $detach);
+
 		CTX.DOMJunk.extendSelection('get', $get);
 		CTX.DOMJunk.extendSelection('first', $first);
 		CTX.DOMJunk.extendSelection('last', $last);
+		CTX.DOMJunk.extendSelection('apply', $apply);
 
 		CTX.DOMJunk.extendAJAX('text', $ajaxTextHandler);
 		CTX.DOMJunk.extendAJAX('text/plain', $ajaxTextHandler);
@@ -1086,21 +1127,21 @@
 
 		/********************************************************************/
 
-		let old$Assignment = CTX.$;
-		let old$UAssignment = CTX.$U;
-		let old$AAssignment = CTX.$A;
+		let old$DJAssignment = CTX.$DJ;
+		let old$DJUAssignment = CTX.$DJU;
+		let old$DJAAssignment = CTX.$DJA;
 
 		/**
-		 * Restores the previous assigment of '$' and '$U' and '$A' at load.
+		 * Restores the previous assigment of '$DJ' and '$DJU' and '$DJA' at load.
 		 */
 		CTX.DOMJunk.noConflict = function() {
-			CTX.$ = old$Assignment;
-			CTX.$U = old$UAssignment;
-			CTX.$A = old$AAssignment;
+			CTX.$DJ = old$DJAssignment;
+			CTX.$DJU = old$DJUAssignment;
+			CTX.$DJA = old$DJAAssignment;
 		};
 		
-		CTX.$ = CTX.DOMJunk;
-		CTX.$U = CTX.DOMJunk.Util;
-		CTX.$A = CTX.DOMJunk.AJAX;
+		CTX.$DJ = CTX.DOMJunk;
+		CTX.$DJU = CTX.DOMJunk.Util;
+		CTX.$DJA = CTX.DOMJunk.AJAX;
 
 })(this);
