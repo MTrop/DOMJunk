@@ -192,13 +192,55 @@
 		};
 
 		/********************************************************************/
+		/** Other Getters                                                  **/
+		/********************************************************************/
+
+		/**
+		 * Fetches an element by its id attribute and wraps it in a SelectionGroup.
+		 * In most cases, this is more performant than a CSS query.
+		 * @param {string} id the id.
+		 * @returns {SelectionGroup} the corresponding element in a SelectionGroup, or empty group if no element.
+		 */
+		const $getById = function(id) {
+			return new SelectionGroup(document.getElementById(id));
+		};
+
+		/**
+		 * Fetches a group of elements by an associated class name.
+		 * In most cases, this is more performant than a CSS query.
+		 * @param {string} classname the class name.
+		 * @returns {SelectionGroup} the corresponding elements in a SelectionGroup, or empty group if no elements.
+		 */
+		const $getByClassName = function(classname) {
+			return new SelectionGroup(document.getElementsByClassName(classname));
+		};
+
+		/**
+		 * Fetches a group of elements by an associated tag name (and optional namespace).
+		 * In most cases, this is more performant than a CSS query.
+		 * @param {string} tagname the tag name.
+		 * @param {string} namespace (optional) the tag namespace.
+		 * @returns {SelectionGroup} the corresponding elements in a SelectionGroup, or empty group if no elements.
+		 */
+		const $getByTagName = function(tagname, namespace) {
+			return isUndefined(namespace) 
+				? new SelectionGroup(document.getElementsByTagName(tagname)) 
+				: new SelectionGroup(document.getElementsByTagNameNS(namespace, tagname))
+			;
+		};
+
+		/********************************************************************/
 		/** Classes                                                        **/
 		/********************************************************************/
 
 		class SelectionGroup {
 			constructor(elements) {
+				// Make empty if no elements.
+				if (isUndefined(elements) || isNull(elements)) {
+					this.length = 0;
+				}
 				// Wrap in one thing if not an array or list.
-				if (isUndefined(elements.length)) {
+				else if (isUndefined(elements.length)) {
 					this[0] = elements;
 					this.length = 1;
 				}
@@ -1104,6 +1146,10 @@
 
 		CTX.DOMJunk.extendAJAX('text', $ajaxTextHandler);
 		CTX.DOMJunk.extendAJAX('text/plain', $ajaxTextHandler);
+
+		CTX.DOMJunk.id = $getById;
+		CTX.DOMJunk.class = $getByClassName;
+		CTX.DOMJunk.tag = $getByTagName;
 
 		CTX.DOMJunk.Util = {};
 		CTX.DOMJunk.Util.isType = isType;
