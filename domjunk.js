@@ -163,6 +163,18 @@
 			return out;
 		};
 
+		// Matches() polyfill.
+		const elemMatches = (
+			Element.prototype.matches ||
+			Element.prototype.matchesSelector || 
+			Element.prototype.msMatchesSelector || 
+			Element.prototype.webkitMatchesSelector
+		);
+		
+		const matches = function(elem, selector){
+			return elemMatches.call(elem, selector);
+		};
+
 		const createText = function(data) {
 			return document.createTextNode(data);
 		};
@@ -202,7 +214,7 @@
 		 * @returns {SelectionGroup} the corresponding element in a SelectionGroup, or empty group if no element.
 		 */
 		const $getById = function(id) {
-			return new SelectionGroup(document.getElementById(id));
+			return new SelectionGroup(document.getElementById(id), true);
 		};
 
 		/**
@@ -234,13 +246,13 @@
 		/********************************************************************/
 
 		class SelectionGroup {
-			constructor(elements) {
+			constructor(elements, forceOne) {
 				// Make empty if no elements.
 				if (isUndefined(elements) || isNull(elements)) {
 					this.length = 0;
 				}
 				// Wrap in one thing if not an array or list.
-				else if (isUndefined(elements.length)) {
+				else if (!!forceOne || isUndefined(elements.length)) {
 					this[0] = elements;
 					this.length = 1;
 				}
@@ -533,9 +545,11 @@
 
 		/**
 		 * Calls a function on each element in the SelectionGroup.
+		 * Each element is passed to the function as [this].
+		 * @param {function} func the function to call for each element.
 		 */
 		const $each = function(func) {
-			func(this);
+			func.apply(this, []);
 		};
 
 		/**
@@ -558,7 +572,7 @@
 		 * @returns {SelectionGroup} the new SelectionGroup with the single child.
 		 */
 		const $child = function(index) {
-			return new SelectionGroup(this.children[index]);
+			return new SelectionGroup(this.children[index], true);
 		};
 
 		/**
@@ -574,7 +588,7 @@
 		 * @returns {SelectionGroup} the new SelectionGroup with the parent element.
 		 */
 		const $parent = function() {
-			return new SelectionGroup(this.parentElement);
+			return new SelectionGroup(this.parentElement, true);
 		};
 
 		/********************************************************************/
@@ -810,6 +824,54 @@
 				this.removeAttribute('class');
 			else
 				this.className = out.join(" ");
+		};
+
+		/********************************************************************/
+
+		/**
+		 * Scrapes a form element for its values and returns an object of the name-value pairings of the form fields,
+		 * or an object mapping (name/id for key).
+		 * The 'id' attribute is used if 'name' is not provided. Unnamed, disabled, or unchecked form elements are not scraped.
+		 * @param {function} callback (optional) if provided, call this function with one argument: the data returned.
+		 * @returns an object of the name/value pairings of the form fields, or the selection group if a callback was provided.
+		 */
+		const $form = function(callback) {
+			
+			if (!isUndefined(callback) && !isFunction(callback))
+				throw new Error("Callback function for formData must be a function!");
+			
+			let formData = {};
+
+			const GATHERFUNC = function() {
+				let memberName = this.getAttribute('name');
+				if (!!memberName) {
+					if (!matches(this, ':disabled')) {
+						const t = this.getAttribute('type');
+						let v = t === 'checkbox' || t === 'radio' ? matches(this, ':checked') : this.value;
+					
+						if (isObject(formData[memberName])) {
+							formData[memberName].push(v);
+						}
+						else if (formData[memberName]) {
+							let arr = [formData[memberName], v];
+							formData[memberName] = arr;
+						}
+						else {
+							formData[memberName] = v;
+						}
+					}
+				}
+			};
+
+			(new SelectionGroup(this)).find('input, textarea, select').each(GATHERFUNC);
+
+			if (callback) {
+				callback(formData);
+				return this;
+			}
+			else {
+				return formData;
+			}
 		};
 
 		/********************************************************************/
@@ -1142,6 +1204,7 @@
 		CTX.DOMJunk.extendSelection('get', $get);
 		CTX.DOMJunk.extendSelection('first', $first);
 		CTX.DOMJunk.extendSelection('last', $last);
+		CTX.DOMJunk.extendSelection('form', $form);
 		CTX.DOMJunk.extendSelection('apply', $apply);
 
 		CTX.DOMJunk.extendAJAX('text', $ajaxTextHandler);
