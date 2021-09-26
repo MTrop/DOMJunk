@@ -167,8 +167,7 @@
 		const elemMatches = (
 			Element.prototype.matches ||
 			Element.prototype.matchesSelector || 
-			Element.prototype.msMatchesSelector || 
-			Element.prototype.webkitMatchesSelector
+			Element.prototype.msMatchesSelector
 		);
 		
 		const matches = function(elem, selector){
@@ -192,7 +191,7 @@
 		
 		const HTML_SPECIAL = /&|\<|\>|\"|\'|\/|`|=/g;
 
-		const OPTIONS_DEFAULTS = {
+		const AJAX_OPTIONS_DEFAULTS = {
 			"data": null,
 			"dataType": 'form',
 			"responseType": null,
@@ -1019,7 +1018,7 @@
 			
 			options.url = options.url || '#';
 			
-			let opt = merge(OPTIONS_DEFAULTS, options);
+			let opt = merge(AJAX_OPTIONS_DEFAULTS, options);
 
 			let url = opt.url;
 			let body = null;
@@ -1252,5 +1251,22 @@
 		CTX.$DJ = CTX.DOMJunk;
 		CTX.$DJU = CTX.DOMJunk.Util;
 		CTX.$DJA = CTX.DOMJunk.AJAX;
+
+		/**
+		 TODO: Add stuff, maybe.
+			TemplateCreate
+			TemplateSet
+			TemplateAppend
+			TemplateFill
+			FormValidate
+			FormFill
+			FormControl
+			DOMSiblings
+			DOMDescendants
+			DOMAncestors
+			Fetch
+			FetchJSON
+			FetchHTML
+		*/
 
 })(this);
