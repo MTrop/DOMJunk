@@ -34,6 +34,10 @@
 			console.error("Missing required function: Element.querySelector.");
 			return;
 		}
+		if (!CTX.DOMParser) {
+			console.error("Missing required object: DOMParser.");
+			return;
+		}
 	
 		/********************************************************************/
 		/** Utilities                                                      **/
@@ -106,19 +110,10 @@
 			return obj;
 		};
 
-		const merge = function(base, add) {
+		const merge = function() {
 			let out = {};
-			if (!base) base = {};
-			if (!add) add = {};
-			each(base, (value, key) => {
-				if (isUndefined(add[key]))
-					out[key] = value;
-				else
-					out[key] = add[key];
-			});
-			each(add, (value, key) => {
-				if (isUndefined(base[key]))
-					out[key] = value;
+			each(arguments, (a) => {
+				out = {...out, ...a};
 			});
 			return out;
 		};
@@ -144,9 +139,9 @@
 		
 		const createElement = function(name, attribs, children) {
 			const out = document.createElement(name);
-			if (attribs) each(attribs, (a) => {
-				const attrObj = document.createAttribute(a);
-				attrObj.value = attribs[a];
+			if (attribs) each(attribs, (v, k) => {
+				const attrObj = document.createAttribute(k);
+				attrObj.value = v;
 				out.setAttributeNode(attrObj);
 			});
 
@@ -199,7 +194,7 @@
 			"responseIsSuccess": false,
 			"async": true,
 			"user": null,
-			"password": null,
+			"password": null
 		};
 
 		/********************************************************************/
@@ -846,17 +841,20 @@
 				if (!!memberName) {
 					if (!matches(this, ':disabled')) {
 						const t = this.getAttribute('type');
-						let v = t === 'checkbox' || t === 'radio' ? matches(this, ':checked') : this.value;
-					
-						if (isObject(formData[memberName])) {
-							formData[memberName].push(v);
-						}
-						else if (formData[memberName]) {
-							let arr = [formData[memberName], v];
-							formData[memberName] = arr;
-						}
-						else {
-							formData[memberName] = v;
+						let v = (t === 'checkbox' || t === 'radio') 
+							? matches(this, ':checked') && this.value
+							: this.value;
+						if (v) {
+							if (isObject(formData[memberName])) {
+								formData[memberName].push(v);
+							}
+							else if (formData[memberName]) {
+								let arr = [formData[memberName], v];
+								formData[memberName] = arr;
+							}
+							else {
+								formData[memberName] = v;
+							}
 						}
 					}
 				}
@@ -883,9 +881,9 @@
 		 * @param {Function} func the function to wrap (the function's [this] becomes the element, and the function's first arg is the event. Cannot be a lambda closure).
 		 */
 		const $attach = function(eventName, func) {
-			this["on"+(eventName.toLowerCase())] = function(event) {
+			this["on"+(eventName.toLowerCase())] = func ? function(event) {
 				func.apply(event.target, [event]);
-			};
+			} : null;
 		};
 
 		/**
@@ -1093,6 +1091,17 @@
 			return new AJAXCall(url, opt, body);
 		};
 
+		const $jsonAjax = function(method, url, data, headers) {
+			return $ajax({
+				"method": method, 
+				"headers": headers,
+				"url": url,
+				"data": data,
+				"dataType": 'json',
+				"responseType": 'json'	
+			});
+		};
+
 		const $ajaxTextHandler = function (responseContent) {
 			if (!Util.isString(responseContent)) {
 				return Object.prototype.toString.call(responseContent);
@@ -1100,6 +1109,14 @@
 			else {
 				return responseContent;
 			}
+		};
+
+		const $ajaxXMLHandler = function(responseContent, _, mimeType) {
+			return (new DOMParser()).parseFromString(responseContent, mimeType);
+		};
+
+		const $ajaxJSONHandler = function(responseContent) {
+			return JSON.parse(responseContent);
 		};
 
 		/********************************************************************/
@@ -1206,8 +1223,32 @@
 		CTX.DOMJunk.extendSelection('form', $form);
 		CTX.DOMJunk.extendSelection('apply', $apply);
 
+		CTX.DOMJunk.extendSelection('load',     function(func){ this.attach('load', func); });
+		CTX.DOMJunk.extendSelection('unload',   function(func){ this.attach('unload', func); });
+		CTX.DOMJunk.extendSelection('click',    function(func){ this.attach('click', func); });
+		CTX.DOMJunk.extendSelection('dblclick', function(func){ this.attach('dblclick', func); });
+		CTX.DOMJunk.extendSelection('hover',    function(func){ this.attach('mouseenter', func); });
+		CTX.DOMJunk.extendSelection('leave',    function(func){ this.attach('mouseleave', func); });
+		CTX.DOMJunk.extendSelection('keydown',  function(func){ this.attach('keydown', func); });
+		CTX.DOMJunk.extendSelection('keyup',    function(func){ this.attach('keyup', func); });
+		CTX.DOMJunk.extendSelection('focus',    function(func){ this.attach('focus', func); });
+		CTX.DOMJunk.extendSelection('blur',     function(func){ this.attach('blur', func); });
+		CTX.DOMJunk.extendSelection('change',   function(func){ this.attach('change', func); });
+
 		CTX.DOMJunk.extendAJAX('text', $ajaxTextHandler);
 		CTX.DOMJunk.extendAJAX('text/plain', $ajaxTextHandler);
+
+		CTX.DOMJunk.extendAJAX('json', $ajaxJSONHandler);
+		CTX.DOMJunk.extendAJAX('application/json', $ajaxJSONHandler);
+
+		CTX.DOMJunk.extendAJAX('xml', $ajaxXMLHandler);
+		CTX.DOMJunk.extendAJAX('text/xml', $ajaxXMLHandler);
+		CTX.DOMJunk.extendAJAX('application/xml', $ajaxXMLHandler);
+		CTX.DOMJunk.extendAJAX('html', $ajaxXMLHandler);
+		CTX.DOMJunk.extendAJAX('text/html', $ajaxXMLHandler);
+		CTX.DOMJunk.extendAJAX('xhtml', $ajaxXMLHandler);
+		CTX.DOMJunk.extendAJAX('text/xhtml', $ajaxXMLHandler);
+		
 
 		CTX.DOMJunk.id = $getById;
 		CTX.DOMJunk.class = $getByClassName;
@@ -1233,24 +1274,34 @@
 
 		CTX.DOMJunk.AJAX = $ajax;
 
+		CTX.DOMJunk.JSONAJAX = $jsonAjax;
+		CTX.DOMJunk.JSONAJAX.get =    function(url, headers)       { return $jsonAjax('get', url, null, headers); };
+		CTX.DOMJunk.JSONAJAX.delete = function(url, headers)       { return $jsonAjax('delete', url, null, headers); };
+		CTX.DOMJunk.JSONAJAX.put =    function(url, data, headers) { return $jsonAjax('put', url, data, headers); };
+		CTX.DOMJunk.JSONAJAX.post =   function(url, data, headers) { return $jsonAjax('post', url, data, headers); };
+		CTX.DOMJunk.JSONAJAX.patch =  function(url, data, headers) { return $jsonAjax('patch', url, data, headers); };
+
 		/********************************************************************/
 
-		let old$DJAssignment = CTX.$DJ;
+		let old$DJAssignment  = CTX.$DJ;
 		let old$DJUAssignment = CTX.$DJU;
 		let old$DJAAssignment = CTX.$DJA;
+		let old$DJJAssignment = CTX.$DJJ;
 
 		/**
-		 * Restores the previous assigment of '$DJ' and '$DJU' and '$DJA' at load.
+		 * Restores the previous assigment of '$DJ' and '$DJU' and '$DJA' and '$DJJ' at load.
 		 */
 		CTX.DOMJunk.noConflict = function() {
-			CTX.$DJ = old$DJAssignment;
+			CTX.$DJ  = old$DJAssignment;
 			CTX.$DJU = old$DJUAssignment;
 			CTX.$DJA = old$DJAAssignment;
+			CTX.$DJJ = old$DJJAssignment;
 		};
 		
-		CTX.$DJ = CTX.DOMJunk;
+		CTX.$DJ  = CTX.DOMJunk;
 		CTX.$DJU = CTX.DOMJunk.Util;
 		CTX.$DJA = CTX.DOMJunk.AJAX;
+		CTX.$DJJ = CTX.DOMJunk.JSONAJAX;
 
 		/**
 		 TODO: Add stuff, maybe.
