@@ -1132,7 +1132,7 @@
 		 * @param {boolean} one (optional) if true, and CSS selector, return only the first match.
 		 * @returns {SelectionGroup} the matching elements, encapsulated.
 		 */
-		CTX.DOMJunk = new function() {
+		const DOMJunk = new function() {
 			return function(query, one) {
 				if (isUndefined(query) || isNull(query)) {
 					return new SelectionGroup([]);
@@ -1158,7 +1158,7 @@
 		 * @param {string} name the name of the function to add to all query results.
 		 * @param {Function} func the function itself (cannot be a lambda closure).
 		 */
-		CTX.DOMJunk.extend = function(name, func) {
+		DOMJunk.extend = function(name, func) {
 			SelectionGroup.prototype[name] = function() {
 				let retval;
 				for (let i = 0; i < this.length && isUndefined(retval); i++) {
@@ -1174,7 +1174,7 @@
 		 * @param {string} name the name of the function to add.
 		 * @param {Function} func the function to add (cannot be a lambda closure).
 		 */
-		CTX.DOMJunk.extendSelection = function(name, func) {
+		DOMJunk.extendSelection = function(name, func) {
 			SelectionGroup.prototype[name] = function() {
 				return func.apply(this, arguments);
 			};
@@ -1187,121 +1187,125 @@
 		 * @param {string} handledTypeName the name of type.
 		 * @param {Function} func the handler function.
 		 */
-		CTX.DOMJunk.extendAJAX = function(handledTypeName, func) {
+		DOMJunk.extendAJAX = function(handledTypeName, func) {
 			AJAXCall.prototype.responseTypeHandlers[handledTypeName] = func;
 		};
 
 		/********************************************************************/
 
-		CTX.DOMJunk.extend('each', $each);
-		CTX.DOMJunk.extend('find', $find);
-		CTX.DOMJunk.extend('child', $child);
-		CTX.DOMJunk.extend('children', $children);
-		CTX.DOMJunk.extend('parent', $parent);
+		DOMJunk.extend('each', $each);
+		DOMJunk.extend('find', $find);
+		DOMJunk.extend('child', $child);
+		DOMJunk.extend('children', $children);
+		DOMJunk.extend('parent', $parent);
 
-		CTX.DOMJunk.extend('clear', $clear);
-		CTX.DOMJunk.extend('append', $append);
-		CTX.DOMJunk.extend('refill', $refill);
-		CTX.DOMJunk.extend('html', $html);
-		CTX.DOMJunk.extend('text', $text);
+		DOMJunk.extend('clear', $clear);
+		DOMJunk.extend('append', $append);
+		DOMJunk.extend('refill', $refill);
+		DOMJunk.extend('html', $html);
+		DOMJunk.extend('text', $text);
 
-		CTX.DOMJunk.extend('set', $set);
-		CTX.DOMJunk.extend('merge', $merge);
+		DOMJunk.extend('set', $set);
+		DOMJunk.extend('merge', $merge);
 
-		CTX.DOMJunk.extend('style', $style);
-		CTX.DOMJunk.extend('attr', $attr);
-		CTX.DOMJunk.extend('classAdd', $classAdd);
-		CTX.DOMJunk.extend('classRemove', $classRemove);
-		CTX.DOMJunk.extend('classToggle', $classToggle);
+		DOMJunk.extend('style', $style);
+		DOMJunk.extend('attr', $attr);
+		DOMJunk.extend('classAdd', $classAdd);
+		DOMJunk.extend('classRemove', $classRemove);
+		DOMJunk.extend('classToggle', $classToggle);
 
-		CTX.DOMJunk.extend('attach', $attach);
-		CTX.DOMJunk.extend('detach', $detach);
+		DOMJunk.extend('attach', $attach);
+		DOMJunk.extend('detach', $detach);
 
-		CTX.DOMJunk.extendSelection('get', $get);
-		CTX.DOMJunk.extendSelection('first', $first);
-		CTX.DOMJunk.extendSelection('last', $last);
-		CTX.DOMJunk.extendSelection('form', $form);
-		CTX.DOMJunk.extendSelection('apply', $apply);
+		DOMJunk.extendSelection('get', $get);
+		DOMJunk.extendSelection('first', $first);
+		DOMJunk.extendSelection('last', $last);
+		DOMJunk.extendSelection('form', $form);
+		DOMJunk.extendSelection('apply', $apply);
 
-		CTX.DOMJunk.extendSelection('load',     function(func){ this.attach('load', func); });
-		CTX.DOMJunk.extendSelection('unload',   function(func){ this.attach('unload', func); });
-		CTX.DOMJunk.extendSelection('click',    function(func){ this.attach('click', func); });
-		CTX.DOMJunk.extendSelection('dblclick', function(func){ this.attach('dblclick', func); });
-		CTX.DOMJunk.extendSelection('hover',    function(func){ this.attach('mouseenter', func); });
-		CTX.DOMJunk.extendSelection('leave',    function(func){ this.attach('mouseleave', func); });
-		CTX.DOMJunk.extendSelection('keydown',  function(func){ this.attach('keydown', func); });
-		CTX.DOMJunk.extendSelection('keyup',    function(func){ this.attach('keyup', func); });
-		CTX.DOMJunk.extendSelection('focus',    function(func){ this.attach('focus', func); });
-		CTX.DOMJunk.extendSelection('blur',     function(func){ this.attach('blur', func); });
-		CTX.DOMJunk.extendSelection('change',   function(func){ this.attach('change', func); });
+		DOMJunk.extendSelection('load',     function(func){ this.attach('load', func); });
+		DOMJunk.extendSelection('unload',   function(func){ this.attach('unload', func); });
+		DOMJunk.extendSelection('click',    function(func){ this.attach('click', func); });
+		DOMJunk.extendSelection('dblclick', function(func){ this.attach('dblclick', func); });
+		DOMJunk.extendSelection('hover',    function(func){ this.attach('mouseenter', func); });
+		DOMJunk.extendSelection('leave',    function(func){ this.attach('mouseleave', func); });
+		DOMJunk.extendSelection('keydown',  function(func){ this.attach('keydown', func); });
+		DOMJunk.extendSelection('keyup',    function(func){ this.attach('keyup', func); });
+		DOMJunk.extendSelection('focus',    function(func){ this.attach('focus', func); });
+		DOMJunk.extendSelection('blur',     function(func){ this.attach('blur', func); });
+		DOMJunk.extendSelection('change',   function(func){ this.attach('change', func); });
 
-		CTX.DOMJunk.extendAJAX('text', $ajaxTextHandler);
-		CTX.DOMJunk.extendAJAX('text/plain', $ajaxTextHandler);
+		DOMJunk.extendAJAX('text', $ajaxTextHandler);
+		DOMJunk.extendAJAX('text/plain', $ajaxTextHandler);
 
-		CTX.DOMJunk.extendAJAX('json', $ajaxJSONHandler);
-		CTX.DOMJunk.extendAJAX('application/json', $ajaxJSONHandler);
+		DOMJunk.extendAJAX('json', $ajaxJSONHandler);
+		DOMJunk.extendAJAX('application/json', $ajaxJSONHandler);
 
-		CTX.DOMJunk.extendAJAX('xml', $ajaxXMLHandler);
-		CTX.DOMJunk.extendAJAX('text/xml', $ajaxXMLHandler);
-		CTX.DOMJunk.extendAJAX('application/xml', $ajaxXMLHandler);
-		CTX.DOMJunk.extendAJAX('html', $ajaxXMLHandler);
-		CTX.DOMJunk.extendAJAX('text/html', $ajaxXMLHandler);
-		CTX.DOMJunk.extendAJAX('xhtml', $ajaxXMLHandler);
-		CTX.DOMJunk.extendAJAX('text/xhtml', $ajaxXMLHandler);
+		DOMJunk.extendAJAX('xml', $ajaxXMLHandler);
+		DOMJunk.extendAJAX('text/xml', $ajaxXMLHandler);
+		DOMJunk.extendAJAX('application/xml', $ajaxXMLHandler);
+		DOMJunk.extendAJAX('html', $ajaxXMLHandler);
+		DOMJunk.extendAJAX('text/html', $ajaxXMLHandler);
+		DOMJunk.extendAJAX('xhtml', $ajaxXMLHandler);
+		DOMJunk.extendAJAX('text/xhtml', $ajaxXMLHandler);
 		
 
-		CTX.DOMJunk.id = $getById;
-		CTX.DOMJunk.class = $getByClassName;
-		CTX.DOMJunk.tag = $getByTagName;
+		DOMJunk.id = $getById;
+		DOMJunk.class = $getByClassName;
+		DOMJunk.tag = $getByTagName;
 
-		CTX.DOMJunk.Util = {};
-		CTX.DOMJunk.Util.isType = isType;
-		CTX.DOMJunk.Util.isUndefined = isUndefined;
-		CTX.DOMJunk.Util.isNull = isNull;
-		CTX.DOMJunk.Util.isBoolean = isBoolean;
-		CTX.DOMJunk.Util.isNumber = isNumber;
-		CTX.DOMJunk.Util.isString = isString;
-		CTX.DOMJunk.Util.isArray = isArray;
-		CTX.DOMJunk.Util.isFunction = isFunction;
-		CTX.DOMJunk.Util.isObject = isObject;
-		CTX.DOMJunk.Util.isBlank = isBlank;
-		CTX.DOMJunk.Util.each = each;
-		CTX.DOMJunk.Util.fold = fold;
-		CTX.DOMJunk.Util.merge = merge;
-		CTX.DOMJunk.Util.queryString = queryString;
-		CTX.DOMJunk.Util.E = createElement;
-		CTX.DOMJunk.Util.T = createText;
+		DOMJunk.Util = {};
+		DOMJunk.Util.isType = isType;
+		DOMJunk.Util.isUndefined = isUndefined;
+		DOMJunk.Util.isNull = isNull;
+		DOMJunk.Util.isBoolean = isBoolean;
+		DOMJunk.Util.isNumber = isNumber;
+		DOMJunk.Util.isString = isString;
+		DOMJunk.Util.isArray = isArray;
+		DOMJunk.Util.isFunction = isFunction;
+		DOMJunk.Util.isObject = isObject;
+		DOMJunk.Util.isBlank = isBlank;
+		DOMJunk.Util.each = each;
+		DOMJunk.Util.fold = fold;
+		DOMJunk.Util.merge = merge;
+		DOMJunk.Util.queryString = queryString;
+		DOMJunk.Util.E = createElement;
+		DOMJunk.Util.T = createText;
 
-		CTX.DOMJunk.AJAX = $ajax;
+		DOMJunk.AJAX = $ajax;
 
-		CTX.DOMJunk.JSONAJAX = $jsonAjax;
-		CTX.DOMJunk.JSONAJAX.get =    function(url, headers)       { return $jsonAjax('get', url, null, headers); };
-		CTX.DOMJunk.JSONAJAX.delete = function(url, headers)       { return $jsonAjax('delete', url, null, headers); };
-		CTX.DOMJunk.JSONAJAX.put =    function(url, data, headers) { return $jsonAjax('put', url, data, headers); };
-		CTX.DOMJunk.JSONAJAX.post =   function(url, data, headers) { return $jsonAjax('post', url, data, headers); };
-		CTX.DOMJunk.JSONAJAX.patch =  function(url, data, headers) { return $jsonAjax('patch', url, data, headers); };
+		DOMJunk.JSONAJAX = $jsonAjax;
+		DOMJunk.JSONAJAX.get =    function(url, headers)       { return $jsonAjax('get', url, null, headers); };
+		DOMJunk.JSONAJAX.delete = function(url, headers)       { return $jsonAjax('delete', url, null, headers); };
+		DOMJunk.JSONAJAX.put =    function(url, data, headers) { return $jsonAjax('put', url, data, headers); };
+		DOMJunk.JSONAJAX.post =   function(url, data, headers) { return $jsonAjax('post', url, data, headers); };
+		DOMJunk.JSONAJAX.patch =  function(url, data, headers) { return $jsonAjax('patch', url, data, headers); };
 
 		/********************************************************************/
 
-		let old$DJAssignment  = CTX.$DJ;
-		let old$DJUAssignment = CTX.$DJU;
-		let old$DJAAssignment = CTX.$DJA;
-		let old$DJJAssignment = CTX.$DJJ;
+		let old$DJAssignment     = CTX.$DJ;
+		let old$DJUAssignment    = CTX.$DJU;
+		let old$DJAAssignment    = CTX.$DJA;
+		let old$DJJAssignment    = CTX.$DJJ;
+		let old$DJMainAssignment = CTX.$DJMain;
 
 		/**
 		 * Restores the previous assigment of '$DJ' and '$DJU' and '$DJA' and '$DJJ' at load.
 		 */
-		CTX.DOMJunk.noConflict = function() {
-			CTX.$DJ  = old$DJAssignment;
-			CTX.$DJU = old$DJUAssignment;
-			CTX.$DJA = old$DJAAssignment;
-			CTX.$DJJ = old$DJJAssignment;
+		DOMJunk.noConflict = function() {
+			CTX.$DJ     = old$DJAssignment;
+			CTX.$DJU    = old$DJUAssignment;
+			CTX.$DJA    = old$DJAAssignment;
+			CTX.$DJJ    = old$DJJAssignment;
+			CTX.$DJMain = old$DJMainAssignment;
 		};
 		
-		CTX.$DJ  = CTX.DOMJunk;
-		CTX.$DJU = CTX.DOMJunk.Util;
-		CTX.$DJA = CTX.DOMJunk.AJAX;
-		CTX.$DJJ = CTX.DOMJunk.JSONAJAX;
+		CTX.DOMJunk = DOMJunk;
+		CTX.$DJ     = DOMJunk;
+		CTX.$DJU    = DOMJunk.Util;
+		CTX.$DJA    = DOMJunk.AJAX;
+		CTX.$DJJ    = DOMJunk.JSONAJAX;
+		CTX.$DJMain = function(func) { DOMJunk.tag('body').load(func); };
 
 		/**
 		 TODO: Add stuff, maybe.
