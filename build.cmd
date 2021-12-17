@@ -1,9 +1,5 @@
 @echo off
-if not exist "build" (
-	mkdir build
+if not exist "dist" (
+	mkdir dist
 )
-uglifyjs --compress --mangle --comments --source-map url=domjunk.min.js.map,includeSources --output build\domjunk.min.js < domjunk.js && (
-	pushd build
-	gzip -c domjunk.min.js > domjunk.min.js.gz
-	popd
-)
+uglifyjs --compress --mangle --comments --source-map url=domjunk.min.js.map,includeSources --output dist\domjunk.min.js < domjunk.js

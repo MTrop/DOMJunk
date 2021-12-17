@@ -336,20 +336,20 @@
 					if (this.successFunc) {
 						try {
 							const CHARSET = 'charset=';
-							let responseContentType = xhr.getResponseHeader('Content-Type');
+							const responseContentType = xhr.getResponseHeader('Content-Type');
 		
-							let idx = responseContentType.indexOf(';');
-							let mimeType = idx >= 0 ? responseContentType.substring(0, idx) : responseContentType;
+							const idx = responseContentType.indexOf(';');
+							const mimeType = idx >= 0 ? responseContentType.substring(0, idx) : responseContentType;
 		
-							let charsetIdx = responseContentType.indexOf(CHARSET);
-							let charsetType = charsetIdx >= 0 ? responseContentType.substring(charsetIdx+CHARSET.length, responseContentType.length).trim() : null;
+							const charsetIdx = responseContentType.indexOf(CHARSET);
+							const charsetType = charsetIdx >= 0 ? responseContentType.substring(charsetIdx + CHARSET.length, responseContentType.length).trim() : null;
 		
-							let typeName = opt.responseType || mimeType;
+							const typeName = opt.responseType || mimeType;
 		
-							let res = xhr.response;
-							if (responseTypeHandlers[typeName]) {
-								res = responseTypeHandlers[typeName](xhr.response, xhr.responseType, mimeType, charsetType, responseContentType);
-							}
+							const res = responseTypeHandlers[typeName] 
+								? responseTypeHandlers[typeName](xhr.response, xhr.responseType, mimeType, charsetType, responseContentType)
+								: xhr.response;
+							
 							this.successFunc(res, xhr.status, xhr.statusText, xhr, event);
 						} catch (err) {
 							this.failureFunc && this.failureFunc(null, null, xhr, event, err);
@@ -1261,23 +1261,23 @@
 		DOMJunk.class = $getByClassName;
 		DOMJunk.tag =   $getByTagName;
 
-		DOMJunk.Util = {};
-		DOMJunk.Util.isType = isType;
-		DOMJunk.Util.isUndefined = isUndefined;
-		DOMJunk.Util.isNull = isNull;
-		DOMJunk.Util.isBoolean = isBoolean;
-		DOMJunk.Util.isNumber = isNumber;
-		DOMJunk.Util.isString = isString;
-		DOMJunk.Util.isArray = isArray;
-		DOMJunk.Util.isFunction = isFunction;
-		DOMJunk.Util.isObject = isObject;
-		DOMJunk.Util.isBlank = isBlank;
-		DOMJunk.Util.each = each;
-		DOMJunk.Util.fold = fold;
-		DOMJunk.Util.merge = merge;
-		DOMJunk.Util.queryString = queryString;
-		DOMJunk.Util.E = createElement;
-		DOMJunk.Util.T = createText;
+		DOMJunk.each = each;
+		DOMJunk.fold = fold;
+		DOMJunk.merge = merge;
+		DOMJunk.queryString = queryString;
+
+		DOMJunk.isType = isType;
+		DOMJunk.isUndefined = isUndefined;
+		DOMJunk.isNull = isNull;
+		DOMJunk.isBoolean = isBoolean;
+		DOMJunk.isNumber = isNumber;
+		DOMJunk.isString = isString;
+		DOMJunk.isArray = isArray;
+		DOMJunk.isFunction = isFunction;
+		DOMJunk.isObject = isObject;
+		DOMJunk.isBlank = isBlank;
+		DOMJunk.e = createElement;
+		DOMJunk.t = createText;
 
 		DOMJunk.AJAX = $ajax;
 
@@ -1291,7 +1291,6 @@
 		/********************************************************************/
 
 		let old$DJAssignment     = CTX.$DJ;
-		let old$DJUAssignment    = CTX.$DJU;
 		let old$DJAAssignment    = CTX.$DJA;
 		let old$DJJAssignment    = CTX.$DJJ;
 		let old$DJMainAssignment = CTX.$DJMain;
@@ -1301,7 +1300,6 @@
 		 */
 		DOMJunk.noConflict = function() {
 			CTX.$DJ     = old$DJAssignment;
-			CTX.$DJU    = old$DJUAssignment;
 			CTX.$DJA    = old$DJAAssignment;
 			CTX.$DJJ    = old$DJJAssignment;
 			CTX.$DJMain = old$DJMainAssignment;
@@ -1309,7 +1307,6 @@
 		
 		CTX.DOMJunk = DOMJunk;
 		CTX.$DJ     = DOMJunk;
-		CTX.$DJU    = DOMJunk.Util;
 		CTX.$DJA    = DOMJunk.AJAX;
 		CTX.$DJJ    = DOMJunk.JSONAJAX;
 		CTX.$DJMain = function(func) { DOMJunk.tag('body').load(func); };
