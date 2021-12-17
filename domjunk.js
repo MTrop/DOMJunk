@@ -539,11 +539,12 @@
 
 		/**
 		 * Calls a function on each element in the SelectionGroup.
-		 * Each element is passed to the function as [this].
+		 * Each element is passed to the function as [this] and the first 
+		 * parameter (for fat-arrow lambdas that preserve [this]).
 		 * @param {function} func the function to call for each element.
 		 */
 		const $each = function(func) {
-			func.apply(this, []);
+			func.apply(this, [this]);
 		};
 
 		/**
@@ -873,6 +874,8 @@
 
 		/********************************************************************/
 
+		const EVENTNAME = (name) => ('on' + name.toLowerCase());
+
 		/**
 		 * Attaches a function to a DOM element event handler (the "on" members).
 		 * The function attached is wrapped in a different function that
@@ -881,8 +884,9 @@
 		 * @param {Function} func the function to wrap (the function's [this] becomes the element, and the function's first arg is the event. Cannot be a lambda closure).
 		 */
 		const $attach = function(eventName, func) {
-			this["on"+(eventName.toLowerCase())] = func ? function(event) {
-				func.apply(event.target, [event]);
+			const self = this;
+			this[EVENTNAME(eventName)] = func ? function(event) {
+				func.apply(self, [event]);
 			} : null;
 		};
 
@@ -891,7 +895,7 @@
 		 * @param {string} eventName the event name (for example, if "mouseover", nullifies "onmouseover").
 		 */
 		const $detach = function(eventName) {
-			this["on"+(eventName.toLowerCase())] = null;
+			this[EVENTNAME(eventName)] = null;
 		};
 
 		/********************************************************************/
@@ -1223,17 +1227,21 @@
 		DOMJunk.extendSelection('form', $form);
 		DOMJunk.extendSelection('apply', $apply);
 
-		DOMJunk.extendSelection('load',     function(func){ this.attach('load', func); });
-		DOMJunk.extendSelection('unload',   function(func){ this.attach('unload', func); });
-		DOMJunk.extendSelection('click',    function(func){ this.attach('click', func); });
-		DOMJunk.extendSelection('dblclick', function(func){ this.attach('dblclick', func); });
-		DOMJunk.extendSelection('hover',    function(func){ this.attach('mouseenter', func); });
-		DOMJunk.extendSelection('leave',    function(func){ this.attach('mouseleave', func); });
-		DOMJunk.extendSelection('keydown',  function(func){ this.attach('keydown', func); });
-		DOMJunk.extendSelection('keyup',    function(func){ this.attach('keyup', func); });
-		DOMJunk.extendSelection('focus',    function(func){ this.attach('focus', func); });
-		DOMJunk.extendSelection('blur',     function(func){ this.attach('blur', func); });
-		DOMJunk.extendSelection('change',   function(func){ this.attach('change', func); });
+		const wrapAttach = function(attachName) {
+			return function(func) { this.attach(attachName, func); };
+		}
+
+		DOMJunk.extendSelection('load',     wrapAttach('load'));
+		DOMJunk.extendSelection('unload',   wrapAttach('unload'));
+		DOMJunk.extendSelection('click',    wrapAttach('click'));
+		DOMJunk.extendSelection('dblclick', wrapAttach('dblclick'));
+		DOMJunk.extendSelection('hover',    wrapAttach('mouseenter'));
+		DOMJunk.extendSelection('leave',    wrapAttach('mouseleave'));
+		DOMJunk.extendSelection('keydown',  wrapAttach('keydown'));
+		DOMJunk.extendSelection('keyup',    wrapAttach('keyup'));
+		DOMJunk.extendSelection('focus',    wrapAttach('focus'));
+		DOMJunk.extendSelection('blur',     wrapAttach('blur'));
+		DOMJunk.extendSelection('change',   wrapAttach('change'));
 
 		DOMJunk.extendAJAX('text', $ajaxTextHandler);
 		DOMJunk.extendAJAX('text/plain', $ajaxTextHandler);
@@ -1249,10 +1257,9 @@
 		DOMJunk.extendAJAX('xhtml', $ajaxXMLHandler);
 		DOMJunk.extendAJAX('text/xhtml', $ajaxXMLHandler);
 		
-
-		DOMJunk.id = $getById;
+		DOMJunk.id =    $getById;
 		DOMJunk.class = $getByClassName;
-		DOMJunk.tag = $getByTagName;
+		DOMJunk.tag =   $getByTagName;
 
 		DOMJunk.Util = {};
 		DOMJunk.Util.isType = isType;
@@ -1274,7 +1281,7 @@
 
 		DOMJunk.AJAX = $ajax;
 
-		DOMJunk.JSONAJAX = $jsonAjax;
+		DOMJunk.JSONAJAX =        $jsonAjax;
 		DOMJunk.JSONAJAX.get =    function(url, headers)       { return $jsonAjax('get', url, null, headers); };
 		DOMJunk.JSONAJAX.delete = function(url, headers)       { return $jsonAjax('delete', url, null, headers); };
 		DOMJunk.JSONAJAX.put =    function(url, data, headers) { return $jsonAjax('put', url, data, headers); };
@@ -1315,13 +1322,9 @@
 			TemplateFill
 			FormValidate
 			FormFill
-			FormControl
 			DOMSiblings
 			DOMDescendants
 			DOMAncestors
-			Fetch
-			FetchJSON
-			FetchHTML
 		*/
 
 })(this);
