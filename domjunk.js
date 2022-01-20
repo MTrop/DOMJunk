@@ -260,7 +260,10 @@
 			}
 		}
 
+		/********************************************************************/
+
 		class AJAXCall {
+
 			constructor(url, opt, body) {
 				// callbacks
 				this.beforeSendFunc = null;
@@ -532,6 +535,125 @@
 		}
 
 		AJAXCall.prototype.responseTypeHandlers = {};
+
+		/********************************************************************/
+
+		class AppState {
+			constructor(stateApplierFunctionMap) {
+				if (!isObject(stateApplierFunctionMap)) {
+					throw new Error("Expected object for state applier.");
+				}
+
+				this.stateApplierFunctionMap = stateApplierFunctionMap;
+
+				// Component state.
+				this.state = {};
+				this.nextStateChanges = {};
+				this.applierTimeout = null;
+			}
+
+			/**
+			 * Sets one or more fields on the state, but doesn't attempt to apply
+			 * to the state functions.
+			 * This will merge the incoming object with the current state.
+			 * @param {Object} nextState the new state changes.
+			 * @returns {AppState} this AppState object.
+			 */
+		 	setState(nextState) {
+				if (!isObject(nextState)) {
+					return;
+				}
+				each(nextState, (value, key) => {
+					this.state[key] = value;
+				});
+				return this;
+			}
+
+			/**
+			 * Applies a state object to this state manager.
+			 * This will merge the incoming object with the current state, and
+			 * send the changed contents to the state applier function map for applying.
+			 * This function can be called many times in one event - all accumulated changes
+			 * get applied once this event yields.
+			 * @param {Object} nextState the new state changes.
+			 * @returns {AppState} this AppState object.
+			 */
+			applyState(nextState) {
+				if (!isObject(nextState)) {
+					return;
+				}
+				each(nextState, (value, key) => {
+					if (this.state[key] !== value) {
+						this.nextStateChanges[key] = value;
+					}
+				});
+				
+				// Apply after event yield - many calls may accumulate changes.
+				if (this.applierTimeout != null) {
+					clearTimeout(this.applierTimeout);
+					this.applierTimeout = null;
+				}
+
+				this.applierTimeout = setTimeout(() => {
+					each(this.nextStateChanges, (value, key) => {
+						if (this.stateApplierFunctionMap[key]) {
+							this.stateApplierFunctionMap[key](value, this.state[key]);
+							this.state[key] = value;
+						}
+					});
+					this.nextStateChanges = {};
+				}, 0);
+
+				return this;
+			}
+
+			/**
+			 * Forces a refresh on a state member as though it changed.
+			 * Useful for "deep" changes on state members like objects and arrays that
+			 * may not be detected at the member level.
+			 * The applier functions are called IMMEDIATELY and within this event.
+			 * @param {String...} arguments a series of member names.
+			 * @returns {AppState} this AppState object.
+			 */
+			touchState(/* memberName... */) {
+				each(arguments, (memberName) => {
+					if (this.stateApplierFunctionMap[memberName]) {
+						const value = this.state[key];
+						this.stateApplierFunctionMap[key](value, value);
+					}
+				});
+				return this;
+			}
+
+			/**
+			 * Binds an event handler to a state applier.
+			 * This just facilitates some shorthanding.
+			 * @param {string} eventName the element event name (e.g. "click", "mouseover", etc.).
+			 * @param {*} selector If SelectionGroup object, use that object. If String, use this as a selector for elements. Else, the element to bind to.
+			 * @param {Object} nextState if function, the function must return an object to pass to applyState. First parameter is event object, Second is the current state object.
+			 * 		If object, it is the object to directly pass to applyState.
+			 * @returns {AppState} this AppState object.
+			 */
+			bindEvent(eventName, selector, nextState) {
+				const self = this;
+
+				let group = null;
+				if (isType("SelectionGroup"))
+					group = selector;
+				else
+					group = DOMJunk(selector);
+
+				group.attach(eventName, function(event) {
+					if (isFunction(nextState)) {
+						self.applyState(nextState(event, self.state));
+					} else {
+						self.applyState(nextState);
+					}
+				});
+				return this;
+			}
+
+		}
 
 		/********************************************************************/
 		/** Commands                                                       **/
@@ -1195,6 +1317,44 @@
 			AJAXCall.prototype.responseTypeHandlers[handledTypeName] = func;
 		};
 
+		/**
+		 * Auto-selects a series of selection groups using an object that maps
+		 * member name to selector query or function that returns a SelectionGroup.
+		 * @param {Object} memberSet a map of member name to selector.
+		 * 		If the selector is a string, it is used as a selector to build the group.
+		 * 		Else if it's a function, it is called to return the member's value.
+		 * 		Else, it is the member's value.
+		 * @returns a new object that is a mapping of name to SelectionGroup.
+		 */
+		DOMJunk.createGroups = function(memberSet) {
+			const out = {};
+			each(memberSet, (selector, memberName) => {
+				let value = null;
+				if (isString(selector)) {
+					value = DOMJunk(selector);
+				} else if (isFunction(selector)) {
+					value = selector();
+				} else {
+					value = selector;
+				}
+
+				out[memberName] = value;
+			});
+			return out;
+		};
+
+		/**
+		 * Creates a new application state driver.
+		 * @param {Object} stateApplicationFuncMap a map of state member name to Function.
+		 * 		The function is called if that state's member changes its value.
+		 * 		First function parameter is the new value.
+		 * 		Second function parameter is the previous value.
+		 * @returns a new AppState object.
+		 */
+		DOMJunk.createAppState = function(stateApplicationFuncMap) {
+			return new AppState(stateApplicationFuncMap);
+		};
+		
 		/********************************************************************/
 
 		DOMJunk.extend('each', $each);
