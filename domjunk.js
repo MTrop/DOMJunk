@@ -634,7 +634,7 @@
 			 * 		If object, it is the object to directly pass to applyState.
 			 * @returns {AppState} this AppState object.
 			 */
-			bindEvent(eventName, selector, nextState) {
+			bindStateEvent(eventName, selector, nextState) {
 				const self = this;
 
 				let group = null;
