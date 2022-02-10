@@ -10,6 +10,10 @@
 	/** Test Browser Capabilities                                      **/
 	/********************************************************************/
 
+    if (!CTX.Element) {
+        console.error("Missing required type: Element.");
+        return;
+    }
 	if (!CTX.document.querySelectorAll) {
 		console.error("Missing required function: document.querySelectorAll.");
 		return;
@@ -34,6 +38,7 @@
 		console.error("Missing required function: Element.querySelector.");
 		return;
 	}
+
 
 	/********************************************************************/
 	/** Utilities                                                      **/
@@ -146,17 +151,6 @@
 		return out;
 	};
 
-	// Matches() polyfill.
-	const elemMatches = (
-		Element.prototype.matches ||
-		Element.prototype.matchesSelector || 
-		Element.prototype.msMatchesSelector
-	);
-	
-	const matches = function(elem, selector){
-		return elemMatches.call(elem, selector);
-	};
-
 	const createText = function(data) {
 		return document.createTextNode(data);
 	};
@@ -174,6 +168,7 @@
 	
 	const HTML_SPECIAL = /&|\<|\>|\"|\'|\/|`|=/g;
 
+
 	/********************************************************************/
 	/** Other Getters                                                  **/
 	/********************************************************************/
@@ -185,7 +180,7 @@
 	 * @returns {SelectionGroup} the corresponding element in a SelectionGroup, or empty group if no element.
 	 */
 	const $getById = function(id) {
-		return new SelectionGroup(document.getElementById(id), true);
+		return new SelectionGroup(document.getElementById(id));
 	};
 
 	/**
@@ -212,12 +207,14 @@
 		;
 	};
 
+
 	/********************************************************************/
 	/** Classes                                                        **/
 	/********************************************************************/
 
-	class SelectionGroup {
+	class SelectionGroup extends Array {
 		constructor(elements, forceOne) {
+			super();
 			// Make empty if no elements.
 			if (isUndefined(elements) || isNull(elements)) {
 				this.length = 0;
@@ -237,6 +234,7 @@
 		}
 	}
 
+
 	/********************************************************************/
 	/** Commands                                                       **/
 	/********************************************************************/
@@ -248,7 +246,7 @@
 	 * @param {function} func the function to call for each element.
 	 */
 	const $each = function(func) {
-		func.apply(this, [this]);
+		func.apply(this, this);
 	};
 
 	/**
@@ -258,7 +256,7 @@
 	 * @param {boolean} one (optional) if true, return the first match.
 	 * @returns {SelectionGroup} the new SelectionGroup of matching elements.
 	 */
-	const $find = function(query, one) {
+	const $search = function(query, one) {
 		return !!one 
 			? new SelectionGroup(this.querySelector(query)) 
 			: new SelectionGroup(this.querySelectorAll(query))
@@ -271,7 +269,7 @@
 	 * @returns {SelectionGroup} the new SelectionGroup with the single child.
 	 */
 	const $child = function(index) {
-		return new SelectionGroup(this.children[index], true);
+		return new SelectionGroup(this.children[index]);
 	};
 
 	/**
@@ -287,7 +285,7 @@
 	 * @returns {SelectionGroup} the new SelectionGroup with the parent element.
 	 */
 	const $parent = function() {
-		return new SelectionGroup(this.parentElement, true);
+		return new SelectionGroup(this.parentElement);
 	};
 
 	/********************************************************************/
@@ -472,16 +470,17 @@
 
 	/**
 	 * Adds a set of CSS classes to each element in the SelectionGroup.
-	 * @param {string} varargs... the vararg list of class names to add to each element.
+	 * @param {string} classNames... the vararg list of class names to add to each element.
 	 */
-	const $classAdd = function() {
+	const $classAdd = function(/* classNames... */) {
+		const classNames = arguments;
 		const classes = this.className.trim().length > 0 ? this.className.split(/\s+/) : [];
 		const classSet = fold({}, (obj) => {
 			classes.map((c) => {obj[c] = true;});
 		});
-		for (let i = 0; i < arguments.length; i++) {
-			if (!classSet[arguments[i]]) {
-				classes.push(arguments[i]);
+		for (let i = 0; i < classNames.length; i++) {
+			if (!classSet[classNames[i]]) {
+				classes.push(classNames[i]);
 			}
 		}
 		this.className = classes.join(" ");
@@ -489,13 +488,14 @@
 
 	/**
 	 * Removes a set of CSS classes from each element in the SelectionGroup.
-	 * @param {string} varargs... the vararg list of class names to remove from each element.
+	 * @param {string} classNames... the vararg list of class names to remove from each element.
 	 */
-	const $classRemove = function() {
+	const $classRemove = function(/* classNames... */) {
+		const classNames = arguments;
 		const classes = this.className.trim().length > 0 ? this.className.split(/\s+/) : [];
 		const remset = {};
-		for (let i = 0; i < arguments.length; i++) {
-			remset[arguments[i]] = true;
+		for (let i = 0; i < classNames.length; i++) {
+			remset[classNames[i]] = true;
 		}
 		const out = [];
 		each(classes, (c) => {
@@ -512,15 +512,16 @@
 	/**
 	 * Toggles the presence of a set of CSS classes in each element in the SelectionGroup.
 	 * If the class exists, it is removed, and if the class does not exist, it is added.
-	 * @param {string} varargs... the vararg list of class names to toggle in each element.
+	 * @param {string} classNames... the vararg list of class names to toggle in each element.
 	 */
-	const $classToggle = function() {
+	const $classToggle = function(/* classNames... */) {
+		const classNames = arguments;
 		const classes = this.className.trim().length > 0 ? this.className.split(/\s+/) : [];
 		const classSet = fold({}, (obj) => {
 			classes.map((c) => {obj[c] = true;});
 		});
 		const argSet = fold({}, (obj) => {
-			each(arguments, (c) => {
+			each(classNames, (c) => {
 				obj[c] = true;
 			});
 		});
@@ -528,13 +529,13 @@
 		const out = [];
 
 		for (let i = 0; i < classes.length; i++) {
-			let name = classes[i];
+			const name = classes[i];
 			if (!argSet[name]) {
 				out.push(name);
 			}
 		}
-		for (let i = 0; i < arguments.length; i++) {
-			let name = arguments[i];
+		for (let i = 0; i < classNames.length; i++) {
+			const name = classNames[i];
 			if (!classSet[name]) {
 				out.push(name);
 			}
@@ -553,22 +554,23 @@
 	 * or an object mapping (name/id for key).
 	 * The 'id' attribute is used if 'name' is not provided. Unnamed, disabled, or unchecked form elements are not scraped.
 	 * @param {function} callback (optional) if provided, call this function with one argument: the data returned.
-	 * @returns an object of the name/value pairings of the form fields, or the selection group if a callback was provided.
+	 * @returns an object of the name/value pairings of the form fields, or the pass-through selection group if a callback was provided.
 	 */
 	const $form = function(callback) {
 		
-		if (!isUndefined(callback) && !isFunction(callback))
+		if (!isUndefined(callback) && !isFunction(callback)) {
 			throw new Error("Callback function for formData must be a function!");
+		}
 		
-		let formData = {};
+		const formData = {};
 
 		const GATHERFUNC = function() {
 			const memberName = this.getAttribute('name');
 			if (!!memberName) {
-				if (!matches(this, ':disabled')) {
+				if (!this.disabled) {
 					const t = this.getAttribute('type');
 					const v = (t === 'checkbox' || t === 'radio') 
-						? matches(this, ':checked') && this.value
+						? this.checked && this.value
 						: this.value;
 					if (v) {
 						if (isObject(formData[memberName])) {
@@ -586,7 +588,7 @@
 			}
 		};
 
-		(new SelectionGroup(this)).find('input, textarea, select').each(GATHERFUNC);
+		(new SelectionGroup(this)).search('input, textarea, select').each(GATHERFUNC);
 
 		if (callback) {
 			callback(formData);
@@ -653,15 +655,16 @@
 	/********************************************************************/
 
 	/**
-	 * Takes a single object where the keys are selector queries to run via .find() and
+	 * Takes a single object where the keys are selector queries to run via .search() and
 	 * corresponding values are functions to call on the selection results via .each().
 	 * @param {object} selectorMap the mapping of selector strings to functions.
 	 */
 	const $apply = function(selectorMap) {
 		each(selectorMap, (v, k) => {
-			this.find(k).each(v);
+			this.search(k).each(v);
 		});
 	};
+
 
 	/********************************************************************/
 	/** Exported                                                       **/
@@ -703,6 +706,9 @@
 	 * @param {Function} func the function itself (cannot be a lambda closure).
 	 */
 	DOMJunk.extend = function(name, func) {
+		if (SelectionGroup.prototype[name]) {
+			console.warn('DOMJunk: Overriding existing function: ' + name);
+		}
 		SelectionGroup.prototype[name] = function() {
 			let retval;
 			for (let i = 0; i < this.length && isUndefined(retval); i++) {
@@ -719,22 +725,14 @@
 	 * @param {Function} func the function to add (cannot be a lambda closure).
 	 */
 	DOMJunk.extendSelection = function(name, func) {
+		if (SelectionGroup.prototype[name]) {
+			console.warn('DOMJunk: Overriding existing function: ' + name);
+		}
 		SelectionGroup.prototype[name] = function() {
 			return func.apply(this, arguments);
 		};
 	};
 	
-	/**
-	 * Adds/sets an AJAX response type handler.
-	 * The handled type is either the name of an expected type passed to options,
-	 * or the MIME-Type of the response body.
-	 * @param {string} handledTypeName the name of type.
-	 * @param {Function} func the handler function.
-	 */
-	DOMJunk.extendAJAX = function(handledTypeName, func) {
-		AJAXCall.prototype.responseTypeHandlers[handledTypeName] = func;
-	};
-
 	/**
 	 * Auto-selects a series of selection groups using an object that maps
 	 * member name to selector query or function that returns a SelectionGroup.
@@ -764,7 +762,7 @@
 	/********************************************************************/
 
 	DOMJunk.extend('each', $each);
-	DOMJunk.extend('find', $find);
+	DOMJunk.extend('search', $search);
 	DOMJunk.extend('child', $child);
 	DOMJunk.extend('children', $children);
 	DOMJunk.extend('parent', $parent);
@@ -846,7 +844,9 @@
 	
 	CTX.DOMJunk = DOMJunk;
 	CTX.$DJ     = DOMJunk;
-	CTX.$DJMain = function(func) { DOMJunk.tag('body').load(func); };
+	CTX.$DJMain = function(func) { 
+		DOMJunk.tag('body').load(func); 
+	};
 
 	/**
 	 TODO: Add stuff, maybe.

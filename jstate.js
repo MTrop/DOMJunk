@@ -4,12 +4,16 @@
  * Licensed for use under the MIT License
  * @license
  ****************************************************************************/
- (function(CTX){
+(function(CTX){
 	
     /********************************************************************/
     /** Test Browser Capabilities                                      **/
     /********************************************************************/
 
+    if (!CTX.Element) {
+        console.error("Missing required type: Element.");
+        return;
+    }
     if (!CTX.document.querySelectorAll) {
         console.error("Missing required function: document.querySelectorAll.");
         return;
@@ -104,6 +108,7 @@
     const matches = function(elem, selector){
         return elemMatches.call(elem, selector);
     };
+
 
     /********************************************************************/
     /** Classes                                                        **/
@@ -293,11 +298,12 @@
 
     /********************************************************************/
 
+    // Top-level object.
     const JState = new function(){};
 
     /**
      * Creates a new application state driver.
-     * @param {Object} stateApplicationFuncMap a map of state member name to Function.
+     * @param {Object} stateFuncMap a map of state member name to Function.
      * 		The function is called if that state's member changes its value.
      * 		First function parameter is the new value.
      * 		Second function parameter is the previous value.
