@@ -978,11 +978,21 @@
 		CTX.$DJMain = old$DJMainAssignment;
 	};
 	
+	const MAINFUNCS = [];
+
 	CTX.DOMJunk = DOMJunk;
 	CTX.$DJ     = DOMJunk;
 	CTX.$DJMain = function(func) { 
-		DOMJunk.tag('body').load(func); 
+		MAINFUNCS.push(func);
 	};
+
+	/********************************************************************/
+
+	document.addEventListener("DOMContentLoaded", function(){
+		for (let i = 0; i < MAINFUNCS.length; i++)
+			MAINFUNCS[i]();
+	});
+
 
 	/**
 	 TODO: Add stuff, maybe.
