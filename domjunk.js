@@ -130,6 +130,12 @@
 		return accum.join('&');
 	};
 	
+	const createHTML = function(html) {
+		const outElement = document.createElement('template');
+		outElement.innerHTML = html;
+		return outElement.content.childNodes;
+	};
+
 	const createElement = function(name, attribs, children) {
 		const out = document.createElement(name);
 		if (attribs) each(attribs, (v, k) => {
@@ -289,6 +295,53 @@
 		return new SelectionGroup(this.parentElement);
 	};
 
+	/**
+	 * Gets the parents of the first DOM element in the SelectionGroup.
+	 * @returns {SelectionGroup} the new SelectionGroup with the parent elements.
+	 */
+	const $ancestors = function() {
+		let elem = this;
+		const out = [];
+		while (elem.parentElement !== null) {
+			out.push(elem.parentElement);
+			elem = elem.parentElement;
+		}
+		return new SelectionGroup(out);
+	};
+
+	/**
+	 * Gets all of the children and the children's children of the first DOM element in the SelectionGroup.
+	 * @returns {SelectionGroup} the new SelectionGroup with the descending elements.
+	 */
+	const $descendants = function() {
+		const out = [];
+		const childQueue = [ ...this.children];
+		while (childQueue.length > 0) {
+			const child = childQueue.pop();
+			out.push(child);
+			for (let i = 0; i < child.children.length; i++) {
+				childQueue.push(child.children[i]);
+			}
+		}
+		return new SelectionGroup(out);
+	};
+
+	/**
+	 * Gets all of the siblings of first DOM element in the SelectionGroup (parent's children nminus the source element).
+	 * @returns {SelectionGroup} the new SelectionGroup with the sibling elements.
+	 */
+	const $siblings = function() {
+		const out = [];
+		const children = [ ...this.parentElement.children];
+		for (let i = 0; i < children.length; i++) {
+			const child = children[i];
+			if (child !== this)
+				out.push(child);
+		}
+		return new SelectionGroup(out);
+	};
+
+
 	/********************************************************************/
 
 	/**
@@ -309,6 +362,11 @@
 	 */
 	const $append = function(elements) {
 		if (isArray(elements)) {
+			for (let i = 0; i < elements.length; i++) {
+				this.appendChild(elements[i]);
+			}
+		}
+		else if (elements instanceof NodeList) {
 			for (let i = 0; i < elements.length; i++) {
 				this.appendChild(elements[i]);
 			}
@@ -673,7 +731,7 @@
 	/**
 	 * Takes a single object where the keys are selector queries to run via .search() and
 	 * corresponding values are functions to call on the selection results via .each().
-	 * @param {object} selectorMap the mapping of selector strings to functions.
+	 * @param {Object} selectorMap the mapping of selector strings to functions.
 	 */
 	const $apply = function(selectorMap) {
 		each(selectorMap, (v, k) => {
@@ -756,7 +814,7 @@
 	 * 		If the selector is a string, it is used as a selector to build the group.
 	 * 		Else if it's a function, it is called to return the member's value.
 	 * 		Else, it is the member's value.
-	 * @returns a new object that is a mapping of name to SelectionGroup.
+	 * @returns {Object} a new object that is a mapping of name to SelectionGroup.
 	 */
 	DOMJunk.createGroups = function(memberSet) {
 		const out = {};
@@ -809,9 +867,7 @@
 				outHTML += templateContent.substring(lastSearchIndex);
 			}
 
-			const outElement = document.createElement('template');
-			outElement.innerHTML = outHTML;
-			return outElement.content.childNodes;
+			return createHTML(outHTML);
 		};
 
 		const generated = [];
@@ -839,6 +895,9 @@
 	DOMJunk.extend('child', $child);
 	DOMJunk.extend('children', $children);
 	DOMJunk.extend('parent', $parent);
+	DOMJunk.extend('ancestors', $ancestors);
+	DOMJunk.extend('descendants', $descendants);
+	DOMJunk.extend('siblings', $siblings);
 
 	DOMJunk.extend('clear', $clear);
 	DOMJunk.extend('append', $append);
@@ -902,6 +961,7 @@
 	DOMJunk.isFunction = isFunction;
 	DOMJunk.isObject = isObject;
 	DOMJunk.isBlank = isBlank;
+	DOMJunk.html = createHTML;
 	DOMJunk.e = createElement;
 	DOMJunk.t = createText;
 
@@ -926,15 +986,8 @@
 
 	/**
 	 TODO: Add stuff, maybe.
-		TemplateCreate
-		TemplateSet
-		TemplateAppend
-		TemplateFill
 		FormValidate
 		FormFill
-		DOMSiblings
-		DOMDescendants
-		DOMAncestors
 	*/
 
 })(this);
