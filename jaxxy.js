@@ -239,9 +239,9 @@
 		 * Sets the function to invoke right before the request is sent.
 		 * @param {Function} func a function that takes:
 		 *		xhr (XMLHttpResponse): the actual XMLHttpResponse object.
-			*		event (ProgressEvent): the actual Event object.
-			* @returns {AJAXCall} itself for chaining.
-			*/
+		 *		event (ProgressEvent): the actual Event object.
+		 * @returns {AJAXCall} itself for chaining.
+		 */
 		beforeSend(func) {
 			this.beforeSendFunc = func;
 			return this;
@@ -251,9 +251,9 @@
 		 * Sets the function to invoke right before loading starts.
 		 * @param {Function} func a function that takes:
 		 *		xhr (XMLHttpResponse): the actual XMLHttpResponse object.
-			*		event (ProgressEvent): the actual Event object.
-			* @returns {AJAXCall} itself for chaining.
-			*/
+		 *		event (ProgressEvent): the actual Event object.
+		 * @returns {AJAXCall} itself for chaining.
+		 */
 		start(func) {
 			this.startFunc = func;
 			return this;
@@ -263,12 +263,12 @@
 		 * Sets the function to invoke on progress updates (if supported).
 		 * @param {Function} func a function that takes:
 		 *		percent (Number): percent progress.
-			*		loaded (Number): loaded amount progress (if length is computable - may be undefined if not).
-			*		total (Number): total amount progress (if length is computable - may be undefined if not).
-			*		xhr (XMLHttpResponse): the actual XMLHttpResponse object.
-			*		event (ProgressEvent): the actual Event object.
-			* @returns {AJAXCall} itself for chaining.
-			*/
+		 *		loaded (Number): loaded amount progress (if length is computable - may be undefined if not).
+		 *		total (Number): total amount progress (if length is computable - may be undefined if not).
+		 *		xhr (XMLHttpResponse): the actual XMLHttpResponse object.
+		 *		event (ProgressEvent): the actual Event object.
+		 * @returns {AJAXCall} itself for chaining.
+		 */
 		progress(func) {
 			this.progressFunc = func;
 			return this;
@@ -278,12 +278,12 @@
 		 * Sets the function to invoke on successful finish.
 		 * @param {Function} func a function that takes:
 		 *		data (Varies): the returned data, altered by expected type.
-			*		status (Number): the status code.
-			*		statusText (string): the status text.
-			*		xhr (XMLHttpResponse): the actual XMLHttpResponse object.
-			*		event (ProgressEvent): the actual Event object.
-			* @returns {AJAXCall} itself for chaining.
-			*/
+		 *		status (Number): the status code.
+		 *		statusText (string): the status text.
+		 *		xhr (XMLHttpResponse): the actual XMLHttpResponse object.
+		 *		event (ProgressEvent): the actual Event object.
+		 * @returns {AJAXCall} itself for chaining.
+		 */
 		success(func) {
 			this.successFunc = func;
 			return this;
@@ -293,9 +293,9 @@
 		 * Sets the function to invoke right before uploading starts.
 		 * @param {Function} func a function that takes:
 		 *		xhr (XMLHttpResponse) the actual XMLHttpResponse object.
-			*		event (ProgressEvent): the actual Event object.
-			* @returns {AJAXCall} itself for chaining.
-			*/
+		 *		event (ProgressEvent): the actual Event object.
+		 * @returns {AJAXCall} itself for chaining.
+		 */
 		uploadStart(func) {
 			this.uploadStartFunc = func;
 			return this;
@@ -305,12 +305,12 @@
 		 * Sets the function to invoke on upload progress updates (if supported).
 		 * @param {Function} func a function that takes:
 		 *		percent (Number): percent progress.
-			*		loaded (Number): loaded amount progress (if length is computable - may be undefined if not).
-			*		total (Number): total amount progress (if length is computable - may be undefined if not).
-			*		xhr (XMLHttpResponse): the actual XMLHttpResponse object.
-			*		event (ProgressEvent): the actual Event object.
-			* @returns {AJAXCall} itself for chaining.
-			*/
+		 *		loaded (Number): loaded amount progress (if length is computable - may be undefined if not).
+		 *		total (Number): total amount progress (if length is computable - may be undefined if not).
+		 *		xhr (XMLHttpResponse): the actual XMLHttpResponse object.
+		 *		event (ProgressEvent): the actual Event object.
+		 * @returns {AJAXCall} itself for chaining.
+		 */
 		uploadProgress(func) {
 			this.uploadProgressFunc = func;
 			return this;
@@ -320,9 +320,9 @@
 		 * Sets the function to invoke on successful upload completion.
 		 * @param {Function} func a function that takes:
 		 *		xhr (XMLHttpResponse): the actual XMLHttpResponse object.
-			*		event (ProgressEvent): the actual Event object.
-			* @returns {AJAXCall} itself for chaining.
-			*/
+		 *		event (ProgressEvent): the actual Event object.
+		 * @returns {AJAXCall} itself for chaining.
+		 */
 		uploadSuccess(func) {
 			this.uploadSuccessFunc = func;
 			return this;
@@ -332,9 +332,9 @@
 		 * Sets the function to invoke on upload end.
 		 * @param {Function} func a function that takes:
 		 *		xhr (XMLHttpResponse): the actual XMLHttpResponse object.
-			*		event (ProgressEvent): the actual Event object.
-			* @returns {AJAXCall} itself for chaining.
-			*/
+		 *		event (ProgressEvent): the actual Event object.
+		 * @returns {AJAXCall} itself for chaining.
+		 */
 		uploadFinished(func) {
 			this.uploadEndFunc = func;
 			return this;
@@ -344,12 +344,12 @@
 		 * Sets the function to invoke on failure (and upload failure).
 		 * @param {Function} func a function that takes:
 		 *		status (Number): the status code (can be null if thrown error).
-			*		statusText (string): the status text (can be null if thrown error).
-			*		xhr (XMLHttpResponse): the actual XMLHttpResponse object.
-			*		event (ProgressEvent): the actual Event object.
-			*		err (Error): JS error object if error.
-			* @returns {AJAXCall} itself for chaining.
-			*/
+		 *		statusText (string): the status text (can be null if thrown error).
+		 *		xhr (XMLHttpResponse): the actual XMLHttpResponse object.
+		 *		event (ProgressEvent): the actual Event object.
+		 *		err (Error): JS error object if error.
+		 * @returns {AJAXCall} itself for chaining.
+		 */
 		failure(func) {
 			this.failureFunc = func;
 			return this;
@@ -359,9 +359,9 @@
 		 * Sets the function to always invoke, be it success, failure, or aborted call.
 		 * @param {Function} func a function that takes:
 		 *		xhr (XMLHttpResponse): the actual XMLHttpResponse object.
-			*		event (ProgressEvent): the actual Event object.
-			* @returns {AJAXCall} itself for chaining.
-			*/
+		 *		event (ProgressEvent): the actual Event object.
+		 * @returns {AJAXCall} itself for chaining.
+		 */
 		always(func) {
 			this.alwaysFunc = func;
 			return this;
@@ -371,9 +371,9 @@
 		 * Sets the function to invoke on abort (and upload abort).
 		 * @param {Function} func a function that takes:
 		 *		xhr (XMLHttpResponse): the actual XMLHttpResponse object.
-			*		event (ProgressEvent): the actual Event object.
-			* @returns {AJAXCall} itself for chaining.
-			*/
+		 *		event (ProgressEvent): the actual Event object.
+		 * @returns {AJAXCall} itself for chaining.
+		 */
 		abort(func) {
 			this.abortFunc = func;
 			return this;
@@ -383,9 +383,9 @@
 		 * Sets the function to invoke on timeout (and upload timeout).
 		 * @param {Function} func a function that takes:
 		 *		xhr (XMLHttpResponse): the actual XMLHttpResponse object.
-			*		event (ProgressEvent): the actual Event object.
-			* @returns {AJAXCall} itself for chaining.
-			*/
+		 *		event (ProgressEvent): the actual Event object.
+		 * @returns {AJAXCall} itself for chaining.
+		 */
 		timeout(func) {
 			this.timeoutFunc = func;
 			return this;
@@ -402,59 +402,59 @@
 	 * @param {*} param 
 	 * (string) URL:
 	 *		Makes a GET request with the provided URL.
-		*		Default return handling.
-		* (Object) map of options:
-		*		method (string): HTTP method.
-		*		url (string): target URL.
-		*		data (VARIES): content to send:
-		*			(Object) 
-		*				If GET/DELETE, turned into params. 
-		*				If POST/PUT/PATCH, submitted in body and reformatted depending on dataType.
-		*			(string) 
-		*				If GET/DELETE, appended as-is as query. 
-		*				If POST/PUT/PATCH, submitted as text, but dataType is now a MIME.
-		*			(ArrayBuffer) 
-		*				If GET/DELETE, discarded. 
-		*				If POST/PUT/PATCH, submitted as-is, but dataType is now a MIME.
-		*			(ArrayBufferView) 
-		*				If GET/DELETE, discarded. 
-		*				If POST/PUT/PATCH, submitted as-is, but dataType is now a MIME.
-		*			(Blob) 
-		*				If GET/DELETE, discarded. 
-		*				If POST/PUT/PATCH, submitted as-is, but dataType is now a MIME.
-		*			(Document) 
-		*				If GET/DELETE, discarded. 
-		*				If POST/PUT/PATCH, submitted as-is, but dataType is overridden to 'text/html'
-		*			(XMLDocument) 
-		*				If GET/DELETE, discarded. 
-		*				If POST/PUT/PATCH, submitted as-is, but dataType is overridden to 'application/xml'
-		*			(HTMLDocument) 
-		*				If GET/DELETE, discarded. 
-		*				If POST/PUT/PATCH, submitted as-is, but dataType is overridden to 'text/html'
-		*			(FormData) 
-		*				If GET/DELETE, discarded. 
-		*				If POST/PUT/PATCH, submitted as-is, but dataType is overridden to 'multipart/form-data'
-		*		dataType (string): If POST/PUT, the type of data referred to as "data". Usually, this is a MIME type.
-		*			'text': Content-Type is set to 'text/plain'. 
-		*				If data is an Object, JSON-stringify. 
-		*				If text, no conversion.
-		*			'form': Content-Type is set to 'application/x-www-form-urlencoded'. 
-		*				If data is an Object, content is converted to a query string. 
-		*				If text, no conversion.
-		*			'json': Content-Type is set to 'application/json'. 
-		*				If data is an Object, JSON-stringify. 
-		*				If text, no conversion.
-		*			Else, 'application/octet-stream'
-		*		responseType (string): 
-		*			What to expect the data back as (either response handler typename or MIMEtype override).
-		*			Else, default is null, which will attempt to convert based on content MIME. If that fails, return response as-is.
-		*		responseIsSuccess (Boolean): If true, 4XX and 5XX is considered "success.", else 4XX and 5XX is failure.
-		*		headers (Object): Map of HTTP Header name to value.
-		*		async (Boolean): If true, asynchronus. Else, wait until completion.
-		*		user (string): username for authorization.
-		*		password (string): password for authorization.
-		* @returns {AJAXCall} an AJAXCall instance.
-		*/
+	 *		Default return handling.
+	 * (Object) map of options:
+	 *		method (string): HTTP method.
+	 *		url (string): target URL.
+	 *		data (VARIES): content to send:
+	 *			(Object) 
+	 *				If GET/DELETE, turned into params. 
+	 *				If POST/PUT/PATCH, submitted in body and reformatted depending on dataType.
+	 *			(string) 
+	 *				If GET/DELETE, appended as-is as query. 
+	 *				If POST/PUT/PATCH, submitted as text, but dataType is now a MIME.
+	 *			(ArrayBuffer) 
+	 *				If GET/DELETE, discarded. 
+	 *				If POST/PUT/PATCH, submitted as-is, but dataType is now a MIME.
+	 *			(ArrayBufferView) 
+	 *				If GET/DELETE, discarded. 
+	 *				If POST/PUT/PATCH, submitted as-is, but dataType is now a MIME.
+	 *			(Blob) 
+	 *				If GET/DELETE, discarded. 
+	 *				If POST/PUT/PATCH, submitted as-is, but dataType is now a MIME.
+	 *			(Document) 
+	 *				If GET/DELETE, discarded. 
+	 *				If POST/PUT/PATCH, submitted as-is, but dataType is overridden to 'text/html'
+	 *			(XMLDocument) 
+	 *				If GET/DELETE, discarded. 
+	 *				If POST/PUT/PATCH, submitted as-is, but dataType is overridden to 'application/xml'
+	 *			(HTMLDocument) 
+	 *				If GET/DELETE, discarded. 
+	 *				If POST/PUT/PATCH, submitted as-is, but dataType is overridden to 'text/html'
+	 *			(FormData) 
+	 *				If GET/DELETE, discarded. 
+	 *				If POST/PUT/PATCH, submitted as-is, but dataType is overridden to 'multipart/form-data'
+	 *		dataType (string): If POST/PUT, the type of data referred to as "data". Usually, this is a MIME type.
+	 *			'text': Content-Type is set to 'text/plain'. 
+	 *				If data is an Object, JSON-stringify. 
+	 *				If text, no conversion.
+	 *			'form': Content-Type is set to 'application/x-www-form-urlencoded'. 
+	 *				If data is an Object, content is converted to a query string. 
+	 *				If text, no conversion.
+	 *			'json': Content-Type is set to 'application/json'. 
+	 *				If data is an Object, JSON-stringify. 
+	 *				If text, no conversion.
+	 *			Else, 'application/octet-stream'
+	 *		responseType (string): 
+	 *			What to expect the data back as (either response handler typename or MIMEtype override).
+	 *			Else, default is null, which will attempt to convert based on content MIME. If that fails, return response as-is.
+	 *		responseIsSuccess (Boolean): If true, 4XX and 5XX is considered "success.", else 4XX and 5XX is failure.
+	 *		headers (Object): Map of HTTP Header name to value.
+	 *		async (Boolean): If true, asynchronus. Else, wait until completion.
+	 *		user (string): username for authorization.
+	 *		password (string): password for authorization.
+	 * @returns {AJAXCall} an AJAXCall instance.
+	 */
 	const Jaxxy = new function(param) {
 		let options = null;
 		
@@ -598,7 +598,7 @@
 	 * Adds/sets an AJAX response type handler.
 	 * The handled type is either the name of an expected type passed to options,
 	 * or the MIME-Type of the response body.
-	 * @param {string} handledTypeName the name of type.
+	 * @param {string} handledTypeName the name of the handled type or MIME-Type.
 	 * @param {Function} func the handler function.
 	 */
 	Jaxxy.extendAJAX = function(handledTypeName, func) {
