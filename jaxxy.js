@@ -572,7 +572,7 @@
 		});
 	};
 
-	const $ajaxTextHandler = function (responseContent) {
+	const $ajaxTextHandler = function(responseContent) {
 		if (!isString(responseContent)) {
 			return Object.prototype.toString.call(responseContent);
 		}

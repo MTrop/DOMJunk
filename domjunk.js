@@ -10,10 +10,10 @@
 	/** Test Browser Capabilities                                      **/
 	/********************************************************************/
 
-    if (!CTX.Element) {
-        console.error("Missing required type: Element.");
-        return;
-    }
+	if (!CTX.Element) {
+		console.error("Missing required type: Element.");
+		return;
+	}
 	if (!CTX.document.querySelectorAll) {
 		console.error("Missing required function: document.querySelectorAll.");
 		return;
@@ -168,6 +168,7 @@
 	
 	const HTML_SPECIAL = /&|\<|\>|\"|\'|\/|`|=/g;
 
+	const HTML_ESCAPE = (input) => input.replace(HTML_SPECIAL, (m) => ENTITIES[m]);
 
 	/********************************************************************/
 	/** Other Getters                                                  **/
@@ -312,7 +313,7 @@
 				this.appendChild(elements[i]);
 			}
 		}
-		else if (elements instanceof Document) {
+		else if (elements instanceof Document || elements instanceof DocumentFragment) {
 			for (let i = 0; i < elements.children.length; i++) {
 				this.appendChild(elements.children[i]);
 			}
@@ -330,6 +331,21 @@
 	 */
 	const $refill = function(elements) {
 		(new SelectionGroup(this)).clear().append(elements);
+	};
+
+	/**
+	 * Removes all of the children in each DOM element in the SelectionGroup, and
+	 * fills them with a new list of children.
+	 * Equivalent to: .clear().append(DOMJunk.createTemplateElements(template, model))
+	 * @param {Template} template the template element to use.
+	 * @param {Object} model the model for the template.
+	 */
+	const $refillTemplate = function(template, model) {
+		if (template instanceof SelectionGroup)
+			template = template[0];
+		(new SelectionGroup(this)).clear().append(DOMJunk.createTemplateElements(
+			template, model
+		));
 	};
 
 	/**
@@ -378,7 +394,7 @@
 			return this.innerText;
 		}
 		else {
-			this.innerHTML = text.replace(HTML_SPECIAL, (m) => ENTITIES[m]);
+			this.innerHTML = HTML_ESCAPE(text);
 		}
 	};
 
@@ -759,6 +775,63 @@
 		return out;
 	};
 
+	/**
+	 * Creates one or more elements from a template element, applying a model to
+	 * it, and returning a generated element. The template content is assumed to have
+	 * "handlebar" tokens in them ("{{tokenName}}") that contain the name of the member to resolve
+	 * in the model.
+	 * @param {Object} model a model to use for filling the template.
+	 * 		If model is an Array, multiple templates are made and returned.
+	 * @returns {Array} an array of generated elements.
+	 */
+	DOMJunk.createTemplateElements = function(templateElement, model) {
+		const templateData = document.importNode(templateElement, true);
+		const templateContent = templateData.innerHTML.trim();
+
+		const _GENERATEELEMENT = (modelObject) => {
+			const matches = templateContent.match(/{{.+?}}/g);
+			let lastSearchIndex = 0;
+			let outHTML = '';
+			if (matches) {
+				for (let i = 0; i < matches.length; i++) {
+					const token = matches[i]; // has handlebars
+					let matchIndex = templateContent.indexOf(token, lastSearchIndex);
+					if (matchIndex >= 0) {
+						outHTML += templateContent.substring(lastSearchIndex, matchIndex);
+						const expression = token.substring(2, token.length - 2);
+						const result = modelObject[expression];
+						if (!isUndefined(result)) {
+							outHTML += isNull(result) ? '' : HTML_ESCAPE(result.toString());
+						}
+						lastSearchIndex = matchIndex + token.length;
+					}
+				}
+				outHTML += templateContent.substring(lastSearchIndex);
+			}
+
+			const outElement = document.createElement('template');
+			outElement.innerHTML = outHTML;
+			return outElement.content.childNodes;
+		};
+
+		const generated = [];
+		if (isArray(model)) {
+			each(model, (m) => {
+				each (_GENERATEELEMENT(m), (e) => {
+					generated.push(e);
+				})
+			});
+			return generated;
+		}
+		else {
+			each (_GENERATEELEMENT(model), (e) => {
+				generated.push(e);
+			})
+			return generated;
+		}
+	};
+
+	
 	/********************************************************************/
 
 	DOMJunk.extend('each', $each);
@@ -770,6 +843,7 @@
 	DOMJunk.extend('clear', $clear);
 	DOMJunk.extend('append', $append);
 	DOMJunk.extend('refill', $refill);
+	DOMJunk.extend('refillTemplate', $refillTemplate);
 	DOMJunk.extend('refillList', $refillList);
 	DOMJunk.extend('html', $html);
 	DOMJunk.extend('text', $text);
@@ -793,7 +867,9 @@
 	DOMJunk.extendSelection('apply', $apply);
 
 	const wrapAttach = function(attachName) {
-		return function(func) { this.attach(attachName, func); };
+		return function(func) { 
+			this.attach(attachName, func); 
+		};
 	}
 
 	DOMJunk.extendSelection('load',     wrapAttach('load'));
