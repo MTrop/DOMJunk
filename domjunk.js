@@ -98,6 +98,12 @@
 		else if (isBoolean(list) || isNumber(list) || isString(list)) {
 			func(list, null, 1);
 		}
+		else if (isArray(list)) {
+			for (let i = 0; i < list.length; i++) {
+				if (func(list[i], i, list.length))
+					break;
+			}
+		}
 		else {
 			for (let x in list) if (list.hasOwnProperty(x)) {
 				if (func(list[x], x, list.length))
@@ -253,7 +259,7 @@
 	 * @param {function} func the function to call for each element.
 	 */
 	const $each = function(func) {
-		func.apply(this, this);
+		func.apply(this, [this]);
 	};
 
 	/**
@@ -739,6 +745,16 @@
 		});
 	};
 
+	/********************************************************************/
+
+	/**
+	 * Unwraps a query, returning every element in the query as-is.
+	 * @returns {Array} the array of elements. 
+	 */
+	const $elements = function() {
+		return [ ...this];
+	};
+
 
 	/********************************************************************/
 	/** Exported                                                       **/
@@ -747,6 +763,7 @@
 	/**
 	 * Performs a document query, returning the list of matches as a SelectionGroup.
 	 * If the first argument is undefined or null, an empty SelectionGroup is returned.
+	 * If the first argument is a SelectionGroup (created from this function), a copy of the SelectionGroup is returned.
 	 * If the first argument is a string, it is treated as a CSS selector, and the elements that match are in the SelectionGroup. 
 	 * Anything else, and the SelectionGroup contains that object, or treats it like a group if it is an array.
 	 * @param {*} query the CSS/document query.
@@ -757,6 +774,9 @@
 		return function(query, one) {
 			if (isUndefined(query) || isNull(query)) {
 				return new SelectionGroup([]);
+			}
+			else if (isArray(query) || query instanceof SelectionGroup) {
+				return new SelectionGroup([ ...query])
 			}
 			else if (isString(query)) {
 				return !!one 
@@ -838,7 +858,9 @@
 	 * it, and returning a generated element. The template content is assumed to have
 	 * "handlebar" tokens in them ("{{tokenName}}") that contain the name of the member to resolve
 	 * in the model.
-	 * @param {Object} model a model to use for filling the template.
+	 * @param {Element} templateElement the template element or a query containing
+	 * 		a template element to use as the template.
+	 * @param {Object | Array} model a model to use for filling the template.
 	 * 		If model is an Array, multiple templates are made and returned.
 	 * @returns {Array} an array of generated elements.
 	 */
@@ -857,7 +879,11 @@
 					if (matchIndex >= 0) {
 						outHTML += templateContent.substring(lastSearchIndex, matchIndex);
 						const expression = token.substring(2, token.length - 2);
-						const result = modelObject[expression];
+						const expressionChain = expression.split(".");
+						let result = modelObject;
+						for (let j = 0; j < expressionChain.length; j++) {
+							result = result[expressionChain[j]];
+						}
 						if (!isUndefined(result)) {
 							outHTML += isNull(result) ? '' : HTML_ESCAPE(result.toString());
 						}
@@ -924,6 +950,7 @@
 	DOMJunk.extendSelection('last', $last);
 	DOMJunk.extendSelection('form', $form);
 	DOMJunk.extendSelection('apply', $apply);
+	DOMJunk.extendSelection('elements', $elements);
 
 	const wrapAttach = function(attachName) {
 		return function(func) { 
