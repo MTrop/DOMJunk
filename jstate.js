@@ -136,11 +136,8 @@
 		}, 0);
 	};
 
-	// Event name converter.
-	const _EVENTNAME = (name) => ('on' + name.toLowerCase());
-
 	// Event attacher function.
-	const _ATTACH = (eventName, eventfunc) => ((element) => {element[eventName] = eventfunc;});
+	const _ATTACH = (eventName, eventfunc) => ((element) => {element.addEventListener(eventName, eventfunc);});
 
 	/********************************************************************/
 
@@ -270,7 +267,7 @@
 		/**
 		 * Binds an event handler to a state applier.
 		 * This just facilitates some shorthanding.
-		 * @param {string} eventName the element event name (e.g. "click", "mouseover", etc.).
+		 * @param {string} eventName the element event name (e.g. "click", "mouseenter", etc.).
 		 * @param {*} selection If String, use this as a selector for elements. Else if Array of elements, the elements to bind to.
 		 * @param {Object} nextState if function, the function must return an object to pass to applyState. First parameter is event object, Second is the current state object.
 		 * 		If object, it is the object to directly pass to applyState.
@@ -279,8 +276,6 @@
 		bindStateEvent(eventName, selection, nextState) {
 			const self = this;
 			
-			eventName = _EVENTNAME(eventName);
-
 			const group = isString(selection)
 				? document.querySelectorAll(selection)
 				: selection;
@@ -376,10 +371,10 @@
 			changeFunction && changeFunction(memberName);
 		};
 
-		const TEXTCHANGE0 =	_ATTACH('onchange', TEXTEVENT);
-		const TEXTCHANGE1 =	_ATTACH('onkeyup',  TEXTEVENT);
-		const CHECKBOXCHANGE = _ATTACH('onchange', CHECKBOXEVENT);
-		const SELECTCHANGE = _ATTACH('onchange', SELECTEVENT);
+		const TEXTCHANGE0 =	_ATTACH('change', TEXTEVENT);
+		const TEXTCHANGE1 =	_ATTACH('keyup',  TEXTEVENT);
+		const CHECKBOXCHANGE = _ATTACH('change', CHECKBOXEVENT);
+		const SELECTCHANGE = _ATTACH('change', SELECTEVENT);
 
 		for (let i = 0; i < formElements.length; i++) {
 			const formElement = formElements[i];

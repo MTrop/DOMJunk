@@ -44,6 +44,23 @@
 	/** Utilities                                                      **/
 	/********************************************************************/
 
+	const ENTITIES = {
+		'&': '&amp;',
+		'<': '&lt;',
+		'>': '&gt;',
+		'"': '&quot;',
+		"'": '&#39;',
+		'/': '&#x2F;',
+		'`': '&#x60;',
+		'=': '&#x3D;'
+	};
+	
+	const HTML_SPECIAL = /&|\<|\>|\"|\'|\/|`|=/g;
+
+	const HTML_REGEX = /<\/?[a-z][\s\S]*>/i;
+
+	const HTML_ESCAPE = (input) => input.replace(HTML_SPECIAL, (m) => ENTITIES[m]);
+
 	const isType = function(obj, type) {
 		return Object.prototype.toString.call(obj) === '[object '+type+']';
 	};
@@ -136,6 +153,10 @@
 		return accum.join('&');
 	};
 	
+	const isHTML = function(obj) {
+		return HTML_REGEX.test(obj);
+	}
+
 	const createHTML = function(html) {
 		const outElement = document.createElement('template');
 		outElement.innerHTML = html;
@@ -166,21 +187,6 @@
 	const createText = function(data) {
 		return document.createTextNode(data);
 	};
-
-	const ENTITIES = {
-		'&': '&amp;',
-		'<': '&lt;',
-		'>': '&gt;',
-		'"': '&quot;',
-		"'": '&#39;',
-		'/': '&#x2F;',
-		'`': '&#x60;',
-		'=': '&#x3D;'
-	};
-	
-	const HTML_SPECIAL = /&|\<|\>|\"|\'|\/|`|=/g;
-
-	const HTML_ESCAPE = (input) => input.replace(HTML_SPECIAL, (m) => ENTITIES[m]);
 
 	/********************************************************************/
 	/** Other Getters                                                  **/
@@ -254,8 +260,8 @@
 
 	/**
 	 * Calls a function on each element in the SelectionGroup.
-	 * Each element is passed to the function as [this] and the first 
-	 * parameter (for fat-arrow lambdas that preserve [this]).
+	 * Each element is passed to the function as "this" and the first 
+	 * parameter (for fat-arrow lambdas that preserve "this").
 	 * @param {function} func the function to call for each element.
 	 */
 	const $each = function(func) {
@@ -367,7 +373,7 @@
 	 * @param {*} elements one or more children to add.
 	 */
 	const $append = function(elements) {
-		if (isArray(elements)) {
+		if (elements instanceof SelectionGroup || isArray(elements)) {
 			for (let i = 0; i < elements.length; i++) {
 				this.appendChild(elements[i]);
 			}
@@ -401,7 +407,7 @@
 	 * Removes all of the children in each DOM element in the SelectionGroup, and
 	 * fills them with a new list of children.
 	 * Equivalent to: .clear().append(DOMJunk.createTemplateElements(template, model))
-	 * @param {Template} template the template element to use.
+	 * @param {Template | SelectionGroup} template the template element to use (can be a SelectionGroup - the first element is used if so).
 	 * @param {Object} model the model for the template.
 	 */
 	const $refillTemplate = function(template, model) {
@@ -681,28 +687,23 @@
 
 	/********************************************************************/
 
-	const EVENTNAME = (name) => ('on' + name.toLowerCase());
-
 	/**
-	 * Attaches a function to a DOM element event handler (the "on" members).
-	 * The function attached is wrapped in a different function that
-	 * parses out the event target and passes it to the function as [this].
-	 * @param {string} eventName the event name (for example, if "mouseover", attaches to "onmouseover").
-	 * @param {Function} func the function to wrap (the function's [this] becomes the element, and the function's first arg is the event. Cannot be a lambda closure).
+	 * Attaches a function to a DOM element event handler.
+	 * The function should take a single parameter: the event that triggered this.
+	 * @param {string} eventName the event name (for example, "mouseenter", "click", etc.).
+	 * @param {Function} func the function to attach.
 	 */
 	const $attach = function(eventName, func) {
-		const self = this;
-		this[EVENTNAME(eventName)] = func ? function(event) {
-			func.apply(self, [event]);
-		} : null;
+		this.addEventListener(eventName, func);
 	};
 
 	/**
 	 * Detaches a function from a DOM element event handler (the "on" members).
-	 * @param {string} eventName the event name (for example, if "mouseover", nullifies "onmouseover").
+	 * @param {string} eventName the event name (for example, "mouseenter", "click", etc.).
+	 * @param {Function} func the function to detach.
 	 */
-	const $detach = function(eventName) {
-		this[EVENTNAME(eventName)] = null;
+	const $detach = function(eventName, func) {
+		this.removeEventListener(eventName, func);
 	};
 
 	/********************************************************************/
@@ -764,7 +765,9 @@
 	 * Performs a document query, returning the list of matches as a SelectionGroup.
 	 * If the first argument is undefined or null, an empty SelectionGroup is returned.
 	 * If the first argument is a SelectionGroup (created from this function), a copy of the SelectionGroup is returned.
-	 * If the first argument is a string, it is treated as a CSS selector, and the elements that match are in the SelectionGroup. 
+	 * If the first argument is a string: 
+	 * 		if the string contains HTML, it will generate HTML elements and wrap them in a SelectionGroup.
+	 * 		else, it is treated as a CSS selector, and the elements that match are in the SelectionGroup. 
 	 * Anything else, and the SelectionGroup contains that object, or treats it like a group if it is an array.
 	 * @param {*} query the CSS/document query.
 	 * @param {boolean} one (optional) if true, and CSS selector, return only the first match.
@@ -775,14 +778,19 @@
 			if (isUndefined(query) || isNull(query)) {
 				return new SelectionGroup([]);
 			}
-			else if (isArray(query) || query instanceof SelectionGroup) {
+			else if (query instanceof SelectionGroup || isArray(query)) {
 				return new SelectionGroup([ ...query])
 			}
 			else if (isString(query)) {
-				return !!one 
-					? new SelectionGroup(document.querySelector(query))
-					: new SelectionGroup(document.querySelectorAll(query))
-				;
+				if (isHTML(query)) {
+					return new SelectionGroup(createHTML(query));
+				} 
+				else {
+					return !!one 
+						? new SelectionGroup(document.querySelector(query))
+						: new SelectionGroup(document.querySelectorAll(query))
+					;
+				}
 			}
 			else {
 				return new SelectionGroup(query)
@@ -913,7 +921,41 @@
 		}
 	};
 
+	/********************************************************************/
+
+	let PERFCOUNTER = 0;
+
+	/**
+	 * Performance-tests a function for a set of iterations.
+	 * @param {Number} iterations the number of iterations to call.
+	 * @param {Function} funcTest the function to test.
+	 */
+	DOMJunk.perfTest = function(iterations, funcTest) {
+		const counter = PERFCOUNTER++;
+		console.time('perfcount' + counter);
+		for (let i = 0; i < iterations; i++) {
+			funcTest();
+		}
+		console.timeEnd('perfcount' + counter);
+		funcDone();
+	};
 	
+	/**
+	 * Performs an time-based iteration test for a function.
+	 * @param {Number} time the time to take for the test (resolution based on performance.now()).
+	 * @param {Function} funcCall the function to call repeatedly.
+	 * @returns {Number} the amount of iterations taken wwithin the desired time.
+	 */
+	DOMJunk.iterationTest = function(time, funcCall) {
+		let iterations = 0;
+		const start = performance.now();
+		while(performance.now() - start < time) {
+			funcCall();
+			iterations++;
+		}
+		return iterations;
+	};
+
 	/********************************************************************/
 
 	DOMJunk.extend('each', $each);
@@ -958,17 +1000,17 @@
 		};
 	}
 
-	DOMJunk.extendSelection('load',     wrapAttach('load'));
-	DOMJunk.extendSelection('unload',   wrapAttach('unload'));
-	DOMJunk.extendSelection('click',    wrapAttach('click'));
-	DOMJunk.extendSelection('dblclick', wrapAttach('dblclick'));
-	DOMJunk.extendSelection('hover',    wrapAttach('mouseenter'));
-	DOMJunk.extendSelection('leave',    wrapAttach('mouseleave'));
-	DOMJunk.extendSelection('keydown',  wrapAttach('keydown'));
-	DOMJunk.extendSelection('keyup',    wrapAttach('keyup'));
-	DOMJunk.extendSelection('focus',    wrapAttach('focus'));
-	DOMJunk.extendSelection('blur',     wrapAttach('blur'));
-	DOMJunk.extendSelection('change',   wrapAttach('change'));
+	DOMJunk.extendSelection('load',       wrapAttach('load'));
+	DOMJunk.extendSelection('unload',     wrapAttach('unload'));
+	DOMJunk.extendSelection('click',      wrapAttach('click'));
+	DOMJunk.extendSelection('dblclick',   wrapAttach('dblclick'));
+	DOMJunk.extendSelection('mouseenter', wrapAttach('mouseenter'));
+	DOMJunk.extendSelection('mouseleave', wrapAttach('mouseleave'));
+	DOMJunk.extendSelection('keydown',    wrapAttach('keydown'));
+	DOMJunk.extendSelection('keyup',      wrapAttach('keyup'));
+	DOMJunk.extendSelection('focus',      wrapAttach('focus'));
+	DOMJunk.extendSelection('blur',       wrapAttach('blur'));
+	DOMJunk.extendSelection('change',     wrapAttach('change'));
 
 	DOMJunk.id =    $getById;
 	DOMJunk.class = $getByClassName;
@@ -988,7 +1030,9 @@
 	DOMJunk.isFunction = isFunction;
 	DOMJunk.isObject = isObject;
 	DOMJunk.isBlank = isBlank;
-	DOMJunk.html = createHTML;
+	DOMJunk.isHTML = isHTML;
+
+	DOMJunk.h = createHTML;
 	DOMJunk.e = createElement;
 	DOMJunk.t = createText;
 
@@ -1019,7 +1063,6 @@
 		for (let i = 0; i < MAINFUNCS.length; i++)
 			MAINFUNCS[i]();
 	});
-
 
 	/**
 	 TODO: Add stuff, maybe.
