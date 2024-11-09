@@ -106,6 +106,8 @@
 	};
 	
 	const AJAX_OPTIONS_DEFAULTS = {
+		"method": "GET",
+		"url": "#",
 		"data": null,
 		"dataType": 'form',
 		"responseType": null,
@@ -208,14 +210,13 @@
 	
 						const typeName = opt.responseType || mimeType;
 	
-						const res = responseTypeHandlers[typeName] 
-							? responseTypeHandlers[typeName](xhr.response, xhr.responseType, mimeType, charsetType, responseContentType)
+						const res = this.responseTypeHandlers[typeName] 
+							? this.responseTypeHandlers[typeName](xhr.response, xhr.responseType, mimeType, charsetType, responseContentType)
 							: xhr.response;
 						
 						this.successFunc(res, xhr.status, xhr.statusText, xhr, event);
 					} catch (err) {
 						this.failureFunc && this.failureFunc(null, null, xhr, event, err);
-						this.alwaysFunc && this.alwaysFunc(event, xhr);
 					}
 				}
 			};
@@ -404,8 +405,8 @@
 	 *		Makes a GET request with the provided URL.
 	 *		Default return handling.
 	 * (Object) map of options:
-	 *		method (string): HTTP method.
-	 *		url (string): target URL.
+	 *		method (string): HTTP method. Default: "GET".
+	 *		url (string): target URL. Default: "#".
 	 *		data (VARIES): content to send:
 	 *			(Object) 
 	 *				If GET/DELETE, turned into params. 
@@ -448,114 +449,115 @@
 	 *		responseType (string): 
 	 *			What to expect the data back as (either response handler typename or MIMEtype override).
 	 *			Else, default is null, which will attempt to convert based on content MIME. If that fails, return response as-is.
-	 *		responseIsSuccess (Boolean): If true, 4XX and 5XX is considered "success.", else 4XX and 5XX is failure.
-	 *		headers (Object): Map of HTTP Header name to value.
-	 *		async (Boolean): If true, asynchronus. Else, wait until completion.
-	 *		user (string): username for authorization.
-	 *		password (string): password for authorization.
+	 *		responseIsSuccess (Boolean): If true, 4XX and 5XX is considered "success.", else 4XX and 5XX is failure. Default: false.
+	 *		headers (Object): Map of HTTP Header name to value. Default: {}
+	 *		async (Boolean): If true, asynchronus. Else, wait until completion. Default: true.
+	 *		user (string): username for authorization. Default: undefined.
+	 *		password (string): password for authorization. Default: undefined.
 	 * @returns {AJAXCall} an AJAXCall instance.
 	 */
-	const Jaxxy = new function(param) {
-		let options = null;
+	const Jaxxy = new function() {
+		return function(param) {
+			let options = null;
 		
-		if (isString(param)) {
-			options = {
-				"method": 'GET', 
-				"url": param
-			};
-		}
-		else if (isObject(param)) {
-			options = param;
-		}
-		else {
-			options = {
-				"method": 'GET', 
-				"url": toString(param)
-			};
-		}
-		
-		if (!options.method) {
-			options.method = 'GET';
-		}
-		else {
+			if (isUndefined(param) || isNull(param)) {
+				options = {
+					"method": 'GET', 
+					"url": "#"
+				};
+			}
+			else if (isString(param)) {
+				options = {
+					"method": 'GET', 
+					"url": param
+				};
+			}
+			else if (isObject(param)) {
+				options = param;
+			}
+			else {
+				options = {
+					"method": 'GET', 
+					"url": toString(param)
+				};
+			}
+			
+			const opt = { ...AJAX_OPTIONS_DEFAULTS, ...options };
+	
 			options.method = options.method.toUpperCase();
+	
+			let url = opt.url;
+			let body = null;
+			
+			if (!isNull(opt.data) && !isUndefined(opt.data)) {
+				if (isObject(opt.data)) {
+					if (opt.method === 'GET' || opt.method === 'DELETE') {
+						url = url + (url.indexOf('?') >= 0 ? '&' : '?') + queryString(opt.data);
+					}
+					else {
+						if (opt.dataType === 'text') {
+							body = queryString(opt.data);
+							opt.headers['Content-Type'] = 'text/plain';
+						}
+						else if (opt.dataType === 'json') {
+							body = JSON.stringify(opt.data);
+							opt.headers['Content-Type'] = 'application/json';
+						}
+						else if (opt.dataType === 'form') {
+							body = queryString(opt.data);
+							opt.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+						}
+					}
+				}
+				else if (isString(opt.data) || isType(opt.data, 'DOMString')) {
+					if (opt.method === 'GET' || opt.method === 'DELETE') {
+						url = url + qs;
+					}
+					else {
+						body = opt.data;
+						opt.headers['Content-Type'] = opt.dataType || 'application/octet-stream';
+					}
+				}
+				else if (isType(opt.data, 'ArrayBuffer')) {
+					if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
+						body = opt.data;
+						opt.headers['Content-Type'] = opt.dataType || 'application/octet-stream';
+					}
+				}
+				else if (isType(opt.data, 'ArrayBufferView')) {
+					if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
+						body = opt.data;
+						opt.headers['Content-Type'] = opt.dataType || 'application/octet-stream';
+					}
+				}
+				else if (isType(opt.data, 'Blob')) {
+					if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
+						body = opt.data;
+						opt.headers['Content-Type'] = opt.dataType || 'application/octet-stream';
+					}
+				}
+				else if (isType(opt.data, 'Document') || isType(opt.data, 'HTMLDocument')) {
+					if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
+						body = opt.data;
+						opt.headers['Content-Type'] = 'text/html';
+					}
+				}
+				else if (isType(opt.data, 'XMLDocument')) {
+					if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
+						body = opt.data;
+						opt.headers['Content-Type'] = 'application/xml';
+					}
+				}
+				else if (isType(opt.data, 'FormData')) {
+					if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
+						body = opt.data;
+						opt.headers['Content-Type'] = 'multipart/form-data';
+					}
+				}
+			}
+			
+			return new AJAXCall(url, opt, body);
 		}
-		
-		options.url = options.url || '#';
-		
-		const opt = { ...AJAX_OPTIONS_DEFAULTS, ...options };
-
-		let url = opt.url;
-		let body = null;
-		
-		if (!isNull(opt.data) && !isUndefined(opt.data)) {
-			if (isObject(opt.data)) {
-				if (opt.method === 'GET' || opt.method === 'DELETE') {
-					url = url + (url.indexOf('?') >= 0 ? '&' : '?') + queryString(opt.data);
-				}
-				else {
-					if (opt.dataType === 'text') {
-						body = queryString(opt.data);
-						opt.headers['Content-Type'] = 'text/plain';
-					}
-					else if (opt.dataType === 'json') {
-						body = JSON.stringify(opt.data);
-						opt.headers['Content-Type'] = 'application/json';
-					}
-					else if (opt.dataType === 'form') {
-						body = queryString(opt.data);
-						opt.headers['Content-Type'] = 'application/x-www-form-urlencoded';
-					}
-				}
-			}
-			else if (isString(opt.data) || isType(opt.data, 'DOMString')) {
-				if (opt.method === 'GET' || opt.method === 'DELETE') {
-					url = url + qs;
-				}
-				else {
-					body = opt.data;
-					opt.headers['Content-Type'] = opt.dataType || 'application/octet-stream';
-				}
-			}
-			else if (isType(opt.data, 'ArrayBuffer')) {
-				if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
-					body = opt.data;
-					opt.headers['Content-Type'] = opt.dataType || 'application/octet-stream';
-				}
-			}
-			else if (isType(opt.data, 'ArrayBufferView')) {
-				if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
-					body = opt.data;
-					opt.headers['Content-Type'] = opt.dataType || 'application/octet-stream';
-				}
-			}
-			else if (isType(opt.data, 'Blob')) {
-				if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
-					body = opt.data;
-					opt.headers['Content-Type'] = opt.dataType || 'application/octet-stream';
-				}
-			}
-			else if (isType(opt.data, 'Document') || isType(opt.data, 'HTMLDocument')) {
-				if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
-					body = opt.data;
-					opt.headers['Content-Type'] = 'text/html';
-				}
-			}
-			else if (isType(opt.data, 'XMLDocument')) {
-				if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
-					body = opt.data;
-					opt.headers['Content-Type'] = 'application/xml';
-				}
-			}
-			else if (isType(opt.data, 'FormData')) {
-				if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
-					body = opt.data;
-					opt.headers['Content-Type'] = 'multipart/form-data';
-				}
-			}
-		}
-		
-		return new AJAXCall(url, opt, body);
 	};
 
 	const $jsonAjax = function(method, url, data, headers) {
