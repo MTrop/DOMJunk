@@ -4,7 +4,7 @@
  * Licensed for use under the MIT License
  * @license
  ****************************************************************************/
-(function(CTX){
+(function(CTX, document){
 	
 	/********************************************************************/
 	/** Test Browser Capabilities                                      **/
@@ -245,10 +245,14 @@
 			}
 			// Else, turn into selection.
 			else {
-				for (let i = 0; i < elements.length; i++) {
-					this[i] = elements[i];
+				if (elements.length < 100000) {
+					this.push(...elements);
 				}
-				this.length = elements.length;
+				else {
+					for (let i = 0; i < elements.length; i++)
+						this[i] = elements[i];
+					this.length = elements.length;
+				}
 			}
 		}
 	}
@@ -733,8 +737,6 @@
 		return new SelectionGroup(this[this.length - 1]);
 	};
 
-	/********************************************************************/
-
 	/**
 	 * Takes a single object where the keys are selector queries to run via .search() and
 	 * corresponding values are functions to call on the selection results via .each().
@@ -744,9 +746,8 @@
 		each(selectorMap, (v, k) => {
 			this.search(k).each(v);
 		});
+		return this;
 	};
-
-	/********************************************************************/
 
 	/**
 	 * Unwraps a query, returning every element in the query as-is.
@@ -865,7 +866,7 @@
 	 * Creates one or more elements from a template element, applying a model to
 	 * it, and returning a generated element. The template content is assumed to have
 	 * "handlebar" tokens in them ("{{tokenName}}") that contain the name of the member to resolve
-	 * in the model.
+	 * in the model. The names can be separated by dots (".") to resolve child elements in the model.
 	 * @param {Element} templateElement the template element or a query containing
 	 * 		a template element to use as the template.
 	 * @param {Object | Array} model a model to use for filling the template.
@@ -928,16 +929,15 @@
 	/**
 	 * Performance-tests a function for a set of iterations.
 	 * @param {Number} iterations the number of iterations to call.
-	 * @param {Function} funcTest the function to test.
+	 * @param {Function} funcCall the function to call repeatedly.
 	 */
-	DOMJunk.perfTest = function(iterations, funcTest) {
+	DOMJunk.perfTest = function(iterations, funcCall) {
 		const counter = PERFCOUNTER++;
 		console.time('perfcount' + counter);
 		for (let i = 0; i < iterations; i++) {
-			funcTest();
+			funcCall();
 		}
 		console.timeEnd('perfcount' + counter);
-		funcDone();
 	};
 	
 	/**
@@ -997,6 +997,7 @@
 	const wrapAttach = function(attachName) {
 		return function(func) { 
 			this.attach(attachName, func); 
+			return this;
 		};
 	}
 
@@ -1070,4 +1071,4 @@
 		FormFill
 	*/
 
-})(this);
+})(this, document);
