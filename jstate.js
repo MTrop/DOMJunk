@@ -294,7 +294,7 @@
 	/********************************************************************/
 
 	// Top-level object.
-	const JState = new function(){};
+	const JState = {};
 
 	/**
 	 * Creates a new application state driver.

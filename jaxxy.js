@@ -456,108 +456,106 @@
 	 *		password (string): password for authorization. Default: undefined.
 	 * @returns {AJAXCall} an AJAXCall instance.
 	 */
-	const Jaxxy = new function() {
-		return function(param) {
-			let options = null;
-		
-			if (isUndefined(param) || isNull(param)) {
-				options = {
-					"method": 'GET', 
-					"url": "#"
-				};
-			}
-			else if (isString(param)) {
-				options = {
-					"method": 'GET', 
-					"url": param
-				};
-			}
-			else if (isObject(param)) {
-				options = param;
-			}
-			else {
-				options = {
-					"method": 'GET', 
-					"url": toString(param)
-				};
-			}
-			
-			const opt = { ...AJAX_OPTIONS_DEFAULTS, ...options };
+	const Jaxxy = function(param) {
+		let options = null;
 	
-			options.method = options.method.toUpperCase();
-	
-			let url = opt.url;
-			let body = null;
-			
-			if (!isNull(opt.data) && !isUndefined(opt.data)) {
-				if (isObject(opt.data)) {
-					if (opt.method === 'GET' || opt.method === 'DELETE') {
-						url = url + (url.indexOf('?') >= 0 ? '&' : '?') + queryString(opt.data);
-					}
-					else {
-						if (opt.dataType === 'text') {
-							body = queryString(opt.data);
-							opt.headers['Content-Type'] = 'text/plain';
-						}
-						else if (opt.dataType === 'json') {
-							body = JSON.stringify(opt.data);
-							opt.headers['Content-Type'] = 'application/json';
-						}
-						else if (opt.dataType === 'form') {
-							body = queryString(opt.data);
-							opt.headers['Content-Type'] = 'application/x-www-form-urlencoded';
-						}
-					}
-				}
-				else if (isString(opt.data) || isType(opt.data, 'DOMString')) {
-					if (opt.method === 'GET' || opt.method === 'DELETE') {
-						url = url + qs;
-					}
-					else {
-						body = opt.data;
-						opt.headers['Content-Type'] = opt.dataType || 'application/octet-stream';
-					}
-				}
-				else if (isType(opt.data, 'ArrayBuffer')) {
-					if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
-						body = opt.data;
-						opt.headers['Content-Type'] = opt.dataType || 'application/octet-stream';
-					}
-				}
-				else if (isType(opt.data, 'ArrayBufferView')) {
-					if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
-						body = opt.data;
-						opt.headers['Content-Type'] = opt.dataType || 'application/octet-stream';
-					}
-				}
-				else if (isType(opt.data, 'Blob')) {
-					if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
-						body = opt.data;
-						opt.headers['Content-Type'] = opt.dataType || 'application/octet-stream';
-					}
-				}
-				else if (isType(opt.data, 'Document') || isType(opt.data, 'HTMLDocument')) {
-					if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
-						body = opt.data;
-						opt.headers['Content-Type'] = 'text/html';
-					}
-				}
-				else if (isType(opt.data, 'XMLDocument')) {
-					if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
-						body = opt.data;
-						opt.headers['Content-Type'] = 'application/xml';
-					}
-				}
-				else if (isType(opt.data, 'FormData')) {
-					if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
-						body = opt.data;
-						opt.headers['Content-Type'] = 'multipart/form-data';
-					}
-				}
-			}
-			
-			return new AJAXCall(url, opt, body);
+		if (isUndefined(param) || isNull(param)) {
+			options = {
+				"method": 'GET', 
+				"url": "#"
+			};
 		}
+		else if (isString(param)) {
+			options = {
+				"method": 'GET', 
+				"url": param
+			};
+		}
+		else if (isObject(param)) {
+			options = param;
+		}
+		else {
+			options = {
+				"method": 'GET', 
+				"url": toString(param)
+			};
+		}
+		
+		const opt = { ...AJAX_OPTIONS_DEFAULTS, ...options };
+
+		options.method = options.method.toUpperCase();
+
+		let url = opt.url;
+		let body = null;
+		
+		if (!isNull(opt.data) && !isUndefined(opt.data)) {
+			if (isObject(opt.data)) {
+				if (opt.method === 'GET' || opt.method === 'DELETE') {
+					url = url + (url.indexOf('?') >= 0 ? '&' : '?') + queryString(opt.data);
+				}
+				else {
+					if (opt.dataType === 'text') {
+						body = queryString(opt.data);
+						opt.headers['Content-Type'] = 'text/plain';
+					}
+					else if (opt.dataType === 'json') {
+						body = JSON.stringify(opt.data);
+						opt.headers['Content-Type'] = 'application/json';
+					}
+					else if (opt.dataType === 'form') {
+						body = queryString(opt.data);
+						opt.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+					}
+				}
+			}
+			else if (isString(opt.data) || isType(opt.data, 'DOMString')) {
+				if (opt.method === 'GET' || opt.method === 'DELETE') {
+					url = url + qs;
+				}
+				else {
+					body = opt.data;
+					opt.headers['Content-Type'] = opt.dataType || 'application/octet-stream';
+				}
+			}
+			else if (isType(opt.data, 'ArrayBuffer')) {
+				if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
+					body = opt.data;
+					opt.headers['Content-Type'] = opt.dataType || 'application/octet-stream';
+				}
+			}
+			else if (isType(opt.data, 'ArrayBufferView')) {
+				if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
+					body = opt.data;
+					opt.headers['Content-Type'] = opt.dataType || 'application/octet-stream';
+				}
+			}
+			else if (isType(opt.data, 'Blob')) {
+				if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
+					body = opt.data;
+					opt.headers['Content-Type'] = opt.dataType || 'application/octet-stream';
+				}
+			}
+			else if (isType(opt.data, 'Document') || isType(opt.data, 'HTMLDocument')) {
+				if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
+					body = opt.data;
+					opt.headers['Content-Type'] = 'text/html';
+				}
+			}
+			else if (isType(opt.data, 'XMLDocument')) {
+				if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
+					body = opt.data;
+					opt.headers['Content-Type'] = 'application/xml';
+				}
+			}
+			else if (isType(opt.data, 'FormData')) {
+				if (!(opt.method === 'GET' || opt.method === 'DELETE')) {
+					body = opt.data;
+					opt.headers['Content-Type'] = 'multipart/form-data';
+				}
+			}
+		}
+		
+		return new AJAXCall(url, opt, body);
 	};
 
 	const $jsonAjax = function(method, url, data, headers) {

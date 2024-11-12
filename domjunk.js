@@ -774,29 +774,27 @@
 	 * @param {boolean} one (optional) if true, and CSS selector, return only the first match.
 	 * @returns {SelectionGroup} the matching elements, encapsulated.
 	 */
-	const DOMJunk = new function() {
-		return function(query, one) {
-			if (isUndefined(query) || isNull(query)) {
-				return new SelectionGroup([]);
-			}
-			else if (query instanceof SelectionGroup || isArray(query)) {
-				return new SelectionGroup([ ...query])
-			}
-			else if (isString(query)) {
-				if (isHTML(query)) {
-					return new SelectionGroup(createHTML(query));
-				} 
-				else {
-					return !!one 
-						? new SelectionGroup(document.querySelector(query))
-						: new SelectionGroup(document.querySelectorAll(query))
-					;
-				}
-			}
+	const DOMJunk = function(query, one) {
+		if (isUndefined(query) || isNull(query)) {
+			return new SelectionGroup([]);
+		}
+		else if (query instanceof SelectionGroup || isArray(query)) {
+			return new SelectionGroup([ ...query])
+		}
+		else if (isString(query)) {
+			if (isHTML(query)) {
+				return new SelectionGroup(createHTML(query));
+			} 
 			else {
-				return new SelectionGroup(query)
+				return !!one 
+					? new SelectionGroup(document.querySelector(query))
+					: new SelectionGroup(document.querySelectorAll(query))
+				;
 			}
-		};
+		}
+		else {
+			return new SelectionGroup(query)
+		}
 	};
 
 	/**
